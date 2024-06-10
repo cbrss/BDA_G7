@@ -1183,7 +1183,7 @@ BEGIN
 	DECLARE @auxiliar				INT
 	SET		@auxiliar = 0
 
-	CREATE TABLE #json_TT (texto VARCHAR(MAX))
+	CREATE TABLE #json_TT (texto VARCHAR(max))
 	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #json_TT 
 											FROM ''' + @p_ruta + ''' 
 											WITH (CODEPAGE = ''65001'')'
@@ -1235,3 +1235,47 @@ EXEC gestion_paciente.usp_AutorizarEstudio
 	print @p_respuesta
 
 */
+
+-- CREACION LOGINS
+
+CREATE LOGIN dba WITH PASSWORD = 'pepe123'
+CREATE LOGIN desarrollador WITH PASSWORD = 'pepe123'
+CREATE LOGIN operador_clinica WITH PASSWORD = 'pepe123'
+CREATE LOGIN admin_clinica WITH PASSWORD = 'pepe123'
+CREATE LOGIN importador_clinica WITH PASSWORD = 'pepe123'
+GO
+
+-- CREACION USUARIOS
+USE master
+CREATE USER dba FOR LOGIN dba
+GRANT ALL TO dba
+GO
+
+USE Com5600G07
+
+CREATE USER desarrollador FOR LOGIN desarrollador
+GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_usuario		TO desarrollador
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO desarrollador
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO desarrollador
+GO
+
+CREATE USER operador_clinica FOR LOGIN operador_clinica;
+GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO operador_clinica
+GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO operador_clinica
+GRANT EXECUTE ON OBJECT::gestion_paciente.usp_EliminarPaciente		TO operador_clinica
+
+-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO operador_clinica
+-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO operador_clinica
+-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_EliminarTurno		TO operador_clinica
+GO
+
+CREATE USER admin_clinica FOR LOGIN admin_clinica
+GRANT EXECUTE ON SCHEMA::gestion_paciente	TO admin_clinica
+-- GRANT EXECUTE ON SCHEMA::gestion_sede	TO admin_clinica
+-- GRANT EXECUTE ON SCHEMA::gestion_turno	TO admin_clinica
+GO
+
+CREATE USER importador_clinica FOR LOGIN importador_clinica
+GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO operador_clinica
+GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO operador_clinica
+GO
