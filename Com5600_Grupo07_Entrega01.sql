@@ -905,12 +905,12 @@ GO
 
 -- FUNCION PARA IMPORTAR PACIENTES
 
--- Av. Córdoba 2529
+-- Av. CÃ³rdoba 2529
 -- ENTRE RIOS 354
 -- CHACABUCO 159 Y MONTECASEROS | LOPEZ ENTRE PLANEZ Y MATIENZO
 -- AVENIDA 9 DE JULIO 857
 -- RUTA NACIONAL 22 KM 856 (ASCENDENTE)
--- 51 Nº 456
+-- 51 NÂº 456
 -- Av. 520 2650
 
 
@@ -949,10 +949,10 @@ BEGIN
 			SET @numero = SUBSTRING(@numero, 1, @posicion_ini - 1)
 		END
 	END
-	ELSE IF PATINDEX('%Nº%', @p_domicilio) > 0	-- CASO: 51 Nº 456
+	ELSE IF PATINDEX('%NÂº%', @p_domicilio) > 0	-- CASO: 51 NÂº 456
 	BEGIN
-		SET @calle	= SUBSTRING(@p_domicilio, 1, CHARINDEX('Nº', @p_domicilio) - 1)					-- el -1 es por el ultimo espacio del KM 
-		SET @numero = SUBSTRING(@p_domicilio, CHARINDEX('Nº', @p_domicilio) + 3, LEN(@p_domicilio))	-- +3 es porque al encontrar 'KM 2' necesitamos movernos hacia el inicio del '2' 
+		SET @calle	= SUBSTRING(@p_domicilio, 1, CHARINDEX('NÂº', @p_domicilio) - 1)					-- el -1 es por el ultimo espacio del KM 
+		SET @numero = SUBSTRING(@p_domicilio, CHARINDEX('NÂº', @p_domicilio) + 3, LEN(@p_domicilio))	-- +3 es porque al encontrar 'KM 2' necesitamos movernos hacia el inicio del '2' 
 		
 	END
 	ELSE																							-- CASO: AVENIDA 9 DE JULIO 857 | Av. 520 2650
@@ -1152,9 +1152,9 @@ GO
 */
 
 /*
-Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
-un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, se le envía el código 
-del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
+Los estudios clÃ­nicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
+un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, se le envÃ­a el cÃ³digo 
+del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si estÃ¡ autorizado o no y 
 el importe a facturarle al paciente. 
 */
 
@@ -1278,4 +1278,179 @@ GO
 CREATE USER importador_clinica FOR LOGIN importador_clinica
 GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO operador_clinica
 GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO operador_clinica
+GO
+
+
+
+ IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Sede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Sede (
+	 id_sede INT not null PRIMARY KEY,
+	 nombre VARCHAR(40),
+	 direccion VARCHAR(30),
+	 );
+END
+GO;
+
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Medico'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Medico(
+	 id_medico INT not null PRIMARY KEY,
+	 nombre VARCHAR(25),
+	 apellido VARCHAR(20),
+	 matricula INT UNIQUE,
+	 );
+END;
+GO;
+
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Diasxsede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Diasxsede (
+	 id_sede int,
+	 id_medico int unique,
+	 dia date,
+	 hora_inicio time,
+	 CONSTRAINT FK_SedeID FOREIGN KEY (id_sede) REFERENCES gestion_sede.Sede(id_sede),
+	 CONSTRAINT FK_MedicoID FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id_medico),
+	 );
+END;
+GO;
+
+
+ IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Especialidad'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Especialidad(
+	 id_especialidad INT NOT NULL PRIMARY KEY,
+	 nombre_especialidad VARCHAR(15),
+	 );
+END;
+GO;
+
+--- CREACION STORE PROCEDURES SEDE
+
+
+CREATE PROCEDURE gestion_sede.usp_InsertarSede 
+	@id INT, 
+	@nomb VARCHAR(40), 
+	@direc VARCHAR(30)
+AS
+	IF EXISTS (@id IN (SELECT id_sede FROM gestion_sede.Sede))
+		EXEC gestion_sede.usp_ModificarSede(@id,@nomb,@direc)
+	ELSE
+		INSERT INTO gestion_sede.Sede VALUES (@id,@nomb,@direc);
+	
+
+
+CREATE PROCEDURE gestion_sede.usp_ModificarSede 
+	@id INT, 
+	@nomb VARCHAR(40), 
+	@direc VARCHAR(30)
+AS
+BEGIN
+	IF (@nomb IS NOT NULL)
+		UPDATE gestion_sede.Sede SET nombre=@nomb WHERE id_sede=@id;
+	IF (@direc IS NOT NULL)
+		UPDATE gestion_sede.Sede SET direccion=@direc WHERE id_sede=@id;
+END
+GO
+
+
+CREATE PROCEDURE gestion_sede.usp_BorrarSede
+	@id INT
+AS
+	DELETE FROM gestion_sede.Sede WHERE id_sede=@id;
+GO
+
+--- CREACION STORE PROCEDURES MEDICO
+
+CREATE PROCEDURE gestion_sede.usp_ModificarMedico
+	@id INT, 
+	@nombre VARCHAR(25), 
+	@apellido VARCHAR(20),
+	@matricula INT
+AS
+BEGIN
+	IF (@nombre IS NOT NULL)
+		UPDATE gestion_sede.Medico SET nombre=@nombre WHERE id_medico=@id;
+	IF (@apellido IS NOT NULL)
+		UPDATE gestion_sede.Medico SET apellido=@apellido WHERE id_medico=@id;
+	IF(@matricula IS NOT NULL)
+		UPDATE gestion_sede.Medico SET matricula=@matricula WHERE id_medico=@id;
+END
+GO
+
+
+CREATE PROCEDURE gestion_sede.usp_InsertarMedico
+	@id_medico INT, 
+	@nombre VARCHAR(25), 
+	@apellido VARCHAR(20),
+	@matricula INT
+AS
+	IF EXISTS (@id IN (SELECT id_medico FROM gestion_sede.Medico))
+		EXEC gestion_sede.usp_ModificarMedico(@id,@nomb,@direc)
+	ELSE
+		INSERT INTO gestion_sede.Medico VALUES (@id,@nombre,@apellido,@matricula);	
+GO
+
+CREATE PROCEDURE gestion_sede.usp_BorrarMedico
+	@id INT
+AS
+	DELETE FROM gestion_sede.Medico WHERE id_medico=@id;		
+GO
+
+
+--- CREACION STORE PROCEDURES DIAS
+
+
+CREATE PROCEDURE gestion_sede.usp_InsertarDias
+	@id_sede INT,
+	@id_medico INT, 
+	@dia DATE, 
+	@hora_inicio TIME
+AS
+	IF(MINUTE(@hora_inicio) IN (0,15,30,45))
+		INSERT INTO gestion_sede.Medico VALUES (@id_sede,@id_medico,@dia,@hora_inicio);
+GO	
+
+CREATE PROCEDURE gestion_sede.usp_ModificarDias 
+	@sede INT,
+	@medico INT, 
+	@dia DATE, 
+	@hora TIME
+AS
+BEGIN
+	IF (@dia IS NOT NULL)
+		UPDATE gestion_sede.Dias SET dia=@dia WHERE id_sede=@sede AND id_medico=@medico;
+	IF (@hora IS NOT NULL AND MINUTE(@hora_inicio) IN (0,15,30,45))
+		UPDATE gestion_sede.Dias SET hora_inicio=@hora WHERE id_sede=@sede AND id_medico=@medico;
+END
+GO
+
+CREATE PROCEDURE gestion_sede.usp_BorrarDias
+	@sede INT,
+	@medico INT
+AS
+	DELETE FROM gestion_sede.Diasxsede WHERE id_sede=@sede AND id_medico=@medico;		
 GO
