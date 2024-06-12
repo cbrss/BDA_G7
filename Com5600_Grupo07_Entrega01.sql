@@ -294,8 +294,8 @@ BEGIN
 		@p_sexo				= @p_sexo,
 		@p_genero			= @p_genero,
 		@p_nacionalidad		= @p_nacionalidad,
-		@r_existe			= @existe OUTPUT,
-		@r_borrado			= @borrado OUTPUT
+		@r_existe			= @existe	OUTPUT,
+		@r_borrado			= @borrado	OUTPUT
 
 	IF @existe = 1 AND @borrado = 1						--	CASO: el operador de la clinica reincorpora un paciente
     BEGIN
@@ -1237,13 +1237,14 @@ EXEC gestion_paciente.usp_AutorizarEstudio
 */
 
 -- CREACION LOGINS
-
+/*
 CREATE LOGIN dba WITH PASSWORD = 'pepe123'
 CREATE LOGIN desarrollador WITH PASSWORD = 'pepe123'
 CREATE LOGIN operador_clinica WITH PASSWORD = 'pepe123'
 CREATE LOGIN admin_clinica WITH PASSWORD = 'pepe123'
 CREATE LOGIN importador_clinica WITH PASSWORD = 'pepe123'
 GO
+*/
 
 -- CREACION USUARIOS
 USE master
@@ -1282,7 +1283,7 @@ GO
 
 
 
- IF NOT EXISTS (
+IF NOT EXISTS (
     SELECT 1
     FROM sys.tables
     WHERE name = 'Sede'
@@ -1290,12 +1291,17 @@ GO
 )
 BEGIN
 	 CREATE TABLE gestion_sede.Sede (
-	 id_sede INT not null PRIMARY KEY,
-	 nombre VARCHAR(40),
-	 direccion VARCHAR(30),
-	 );
+		 id				INT IDENTITY(1,1),
+		 nombre			VARCHAR(30),
+		 direccion		VARCHAR(30),
+		 localidad		VARCHAR(30),
+		 provincia		VARCHAR(30),
+
+		 CONSTRAINT PK_SedeID PRIMARY KEY (id)
+	 )
 END
-GO;
+GO
+
 
 
 IF NOT EXISTS (
@@ -1306,35 +1312,39 @@ IF NOT EXISTS (
 )
 BEGIN
 	 CREATE TABLE gestion_sede.Medico(
-	 id_medico INT not null PRIMARY KEY,
-	 nombre VARCHAR(25),
-	 apellido VARCHAR(20),
-	 matricula INT UNIQUE,
+		 id				INT IDENTITY(1,1),
+		 nombre			VARCHAR(25),
+		 apellido		VARCHAR(20),
+		 matricula		INT UNIQUE,
+		 CONSTRAINT PK_MedicoID PRIMARY KEY (id)
 	 );
 END;
-GO;
+GO
 
 
 IF NOT EXISTS (
     SELECT 1
     FROM sys.tables
-    WHERE name = 'Diasxsede'
+    WHERE name = 'DiasXSede'
     AND schema_id = SCHEMA_ID('gestion_sede')
 )
 BEGIN
-	 CREATE TABLE gestion_sede.Diasxsede (
-	 id_sede int,
-	 id_medico int unique,
-	 dia date,
-	 hora_inicio time,
-	 CONSTRAINT FK_SedeID FOREIGN KEY (id_sede) REFERENCES gestion_sede.Sede(id_sede),
-	 CONSTRAINT FK_MedicoID FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id_medico),
+	 CREATE TABLE gestion_sede.DiasXSede (
+		 id				INT,
+		 id_sede		INT,
+		 id_medico		INT,
+		 dia			DATE,
+		 hora_inicio	TIME,
+
+	 CONSTRAINT PK_DiasxsedeID	PRIMARY KEY (id),
+	 CONSTRAINT FK_SedeID		FOREIGN KEY (id_sede)	REFERENCES gestion_sede.Sede(id),
+	 CONSTRAINT FK_MedicoID		FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id)
 	 );
 END;
-GO;
+GO
 
 
- IF NOT EXISTS (
+IF NOT EXISTS (
     SELECT 1
     FROM sys.tables
     WHERE name = 'Especialidad'
@@ -1342,118 +1352,397 @@ GO;
 )
 BEGIN
 	 CREATE TABLE gestion_sede.Especialidad(
-	 id_especialidad INT NOT NULL PRIMARY KEY,
-	 nombre_especialidad VARCHAR(15),
+		id			INT,
+		nombre		VARCHAR(20),
+
+		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
 	 );
 END;
-GO;
+GO
 
 --- CREACION STORE PROCEDURES SEDE
 
+-- BUSCAR
 
-CREATE PROCEDURE gestion_sede.usp_InsertarSede 
-	@id INT, 
-	@nomb VARCHAR(40), 
-	@direc VARCHAR(30)
-AS
-	IF EXISTS (@id IN (SELECT id_sede FROM gestion_sede.Sede))
-		EXEC gestion_sede.usp_ModificarSede(@id,@nomb,@direc)
-	ELSE
-		INSERT INTO gestion_sede.Sede VALUES (@id,@nomb,@direc);
-	
-
-
-CREATE PROCEDURE gestion_sede.usp_ModificarSede 
-	@id INT, 
-	@nomb VARCHAR(40), 
-	@direc VARCHAR(30)
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede 
+	@p_nombre		VARCHAR(30), 
+	@p_direcccion	VARCHAR(30),
+	@r_existe		BIT	OUTPUT
 AS
 BEGIN
-	IF (@nomb IS NOT NULL)
-		UPDATE gestion_sede.Sede SET nombre=@nomb WHERE id_sede=@id;
-	IF (@direc IS NOT NULL)
-		UPDATE gestion_sede.Sede SET direccion=@direc WHERE id_sede=@id;
+	SET @r_existe = 0
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE nombre			= @p_nombre
+			AND	direccion		= @p_direcccion
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+END
+GO	
+
+-- ACTUALIZAR 
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede 
+	@p_id			INT, 
+	@p_nombre		VARCHAR(30) = NULL, 
+	@p_direcccion	VARCHAR(30) = NULL
+AS
+BEGIN
+	DECLARE
+		@nombre		VARCHAR(30),
+		@direccion	VARCHAR(30)
+	SELECT
+		@nombre		= nombre,
+		@direccion	= direccion
+	FROM gestion_sede.Sede
+	WHERE id = @p_id
+
+	UPDATE	gestion_sede.Sede
+	SET	
+		nombre		= ISNULL(@p_nombre, @nombre),
+		direccion	= ISNULL(@p_direcccion, @direccion)
+	WHERE id = @p_id
 END
 GO
 
+--	INSERTAR
 
-CREATE PROCEDURE gestion_sede.usp_BorrarSede
-	@id INT
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede 
+	@p_id			INT			= NULL, 
+	@p_nombre		VARCHAR(30), 
+	@p_direcccion	VARCHAR(30)
 AS
-	DELETE FROM gestion_sede.Sede WHERE id_sede=@id;
+BEGIN
+	DECLARE @existe		BIT
+	EXEC gestion_sede.usp_ExisteSede
+		@p_nombre		= @p_nombre,
+		@p_direcccion	= @p_direcccion,
+		@r_existe		= @existe OUTPUT
+
+	IF @existe = 1
+	BEGIN
+		EXEC gestion_sede.usp_ActualizarSede
+			@p_id	= @p_id,
+			@p_nombre		= @p_nombre,
+			@p_direcccion	= @p_direcccion
+	END
+	ELSE
+		INSERT INTO gestion_sede.Sede (
+			nombre,
+			direccion
+		)
+		VALUES (
+			@p_nombre,
+			@p_direcccion
+		);
+END
 GO
+
+-- BORRAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
+	@p_id INT
+AS
+	DELETE FROM gestion_sede.Sede WHERE id = @p_id;
+GO
+
 
 --- CREACION STORE PROCEDURES MEDICO
 
-CREATE PROCEDURE gestion_sede.usp_ModificarMedico
-	@id INT, 
-	@nombre VARCHAR(25), 
-	@apellido VARCHAR(20),
-	@matricula INT
+
+-- BUSCAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteMedico 
+	@p_nombre			VARCHAR(30),
+	@p_apellido			VARCHAR(30),
+	@p_matricula		INT,
+	@r_existe			BIT OUTPUT
 AS
 BEGIN
-	IF (@nombre IS NOT NULL)
-		UPDATE gestion_sede.Medico SET nombre=@nombre WHERE id_medico=@id;
-	IF (@apellido IS NOT NULL)
-		UPDATE gestion_sede.Medico SET apellido=@apellido WHERE id_medico=@id;
-	IF(@matricula IS NOT NULL)
-		UPDATE gestion_sede.Medico SET matricula=@matricula WHERE id_medico=@id;
+	SET @r_existe = 0
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE nombre			= @p_nombre
+			AND	apellido		= @p_apellido
+			AND matricula		= @p_matricula
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
 END
-GO
-
-
-CREATE PROCEDURE gestion_sede.usp_InsertarMedico
-	@id_medico INT, 
-	@nombre VARCHAR(25), 
-	@apellido VARCHAR(20),
-	@matricula INT
-AS
-	IF EXISTS (@id IN (SELECT id_medico FROM gestion_sede.Medico))
-		EXEC gestion_sede.usp_ModificarMedico(@id,@nomb,@direc)
-	ELSE
-		INSERT INTO gestion_sede.Medico VALUES (@id,@nombre,@apellido,@matricula);	
-GO
-
-CREATE PROCEDURE gestion_sede.usp_BorrarMedico
-	@id INT
-AS
-	DELETE FROM gestion_sede.Medico WHERE id_medico=@id;		
-GO
-
-
---- CREACION STORE PROCEDURES DIAS
-
-
-CREATE PROCEDURE gestion_sede.usp_InsertarDias
-	@id_sede INT,
-	@id_medico INT, 
-	@dia DATE, 
-	@hora_inicio TIME
-AS
-	IF(MINUTE(@hora_inicio) IN (0,15,30,45))
-		INSERT INTO gestion_sede.Medico VALUES (@id_sede,@id_medico,@dia,@hora_inicio);
 GO	
 
-CREATE PROCEDURE gestion_sede.usp_ModificarDias 
-	@sede INT,
-	@medico INT, 
-	@dia DATE, 
-	@hora TIME
+-- ACTUALIZAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarMedico
+	@p_id				INT, 
+	@p_nombre			VARCHAR(25)	= NULL, 
+	@p_apellido			VARCHAR(20)	= NULL,
+	@p_matricula		INT			= NULL
 AS
 BEGIN
-	IF (@dia IS NOT NULL)
-		UPDATE gestion_sede.Dias SET dia=@dia WHERE id_sede=@sede AND id_medico=@medico;
-	IF (@hora IS NOT NULL AND MINUTE(@hora_inicio) IN (0,15,30,45))
-		UPDATE gestion_sede.Dias SET hora_inicio=@hora WHERE id_sede=@sede AND id_medico=@medico;
+	DECLARE
+		@nombre		VARCHAR(30),
+		@apellido	VARCHAR(30),
+		@matricula	INT
+	SELECT
+		@nombre		= nombre,
+		@apellido	= apellido,
+		@matricula	= matricula
+
+	FROM gestion_sede.Medico
+	WHERE id = @p_id
+
+	UPDATE	gestion_sede.Medico
+	SET	
+		nombre		= ISNULL(@p_nombre, @nombre),
+		apellido	= ISNULL(@p_apellido, @apellido),
+		matricula	= ISNULL(@p_matricula, @matricula)
+	WHERE id = @p_id
 END
 GO
 
-CREATE PROCEDURE gestion_sede.usp_BorrarDias
-	@sede INT,
-	@medico INT
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
+	@p_id INT, 
+	@p_nombre VARCHAR(25), 
+	@p_apellido VARCHAR(20),
+	@p_matricula INT
 AS
-	DELETE FROM gestion_sede.Diasxsede WHERE id_sede=@sede AND id_medico=@medico;		
+BEGIN
+	DECLARE @existe	BIT
+	EXEC gestion_sede.usp_ExisteMedico
+		@p_nombre		= @p_nombre,
+		@p_apellido		= @p_apellido,
+		@p_matricula	= @p_matricula,
+		@r_existe		= @existe OUTPUT
+
+	IF @existe = 1
+	BEGIN
+		EXEC gestion_sede.usp_ActualizarMedico
+			@p_id			= @p_id,
+			@p_nombre		= @p_nombre,
+			@p_apellido		= @p_apellido,
+			@p_matricula	= @p_matricula
+	END
+	ELSE
+	BEGIN
+		INSERT INTO gestion_sede.Medico (
+			nombre,
+			apellido,
+			matricula
+		)
+		VALUES (
+			@p_nombre,
+			@p_apellido,
+			@p_matricula
+		)
+
+	END
+END
 GO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarMedico
+	@p_id INT
+AS
+	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
+GO
+
+
+--- CREACION STORE PROCEDURES DIASXSEDE
+
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarDiasXSede
+	@id				INT,
+	@id_sede		INT,
+	@id_medico		INT, 
+	@dia			DATE, 
+	@hora_inicio	TIME
+AS
+	IF(DATEPART(MINUTE, @hora_inicio) IN (0,15,30,45))
+		INSERT INTO gestion_sede.DiasXSede(
+			id,
+			id_sede,
+			id_medico,
+			dia,
+			hora_inicio
+		)
+		VALUES (
+			@id_sede,
+			@id_medico,
+			@dia,
+			@hora_inicio
+		);
+GO	
+
+-- ACTUALIZAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarDiasXSede 
+	@p_id			INT,
+	@p_id_sede		INT		= NULL,
+	@p_id_medico	INT		= NULL, 
+	@p_dia			DATE	= NULL, 
+	@p_hora_inicio	TIME	= NULL
+AS
+BEGIN
+
+	DECLARE
+		@id_sede		INT,
+		@id_medico		INT,
+		@dia			DATE,
+		@hora_inicio	TIME
+	SELECT
+		@id_sede		= id_sede,
+		@id_medico		= id_medico,
+		@dia			= dia,
+		@hora_inicio	= hora_inicio
+	FROM gestion_sede.DiasXSede
+	WHERE id = @p_id
+
+    UPDATE gestion_sede.DiasXSede
+    SET
+        id_sede			= ISNULL(@p_id_sede, @id_sede),
+        id_medico		= ISNULL(@p_id_medico, @id_medico),
+        dia				= ISNULL(@p_dia, @dia),
+        hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
+    WHERE id = @p_id;
+END
+GO
+
+-- BORRAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarDias
+	@p_sede		INT,
+	@p_medico	INT
+AS
+	DELETE gestion_sede.Diasxsede 
+	WHERE id_sede = @p_sede 
+		AND id_medico = @p_medico;		
+GO
+
+
+-- CREACION STORE PROCEDURES SEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede
+	@p_nombre		VARCHAR(30),
+	@p_direccion	VARCHAR(30),
+	@p_localidad	VARCHAR(30),
+	@p_provincia	VARCHAR(30),
+	@r_existe		BIT	OUTPUT
+AS
+BEGIN
+	SET @r_existe = 0
+	
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE nombre = @p_nombre
+			AND direccion = @p_direccion
+			AND localidad = @p_localidad
+			AND provincia = @p_provincia
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+END
+GO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede
+	@p_id			INT			= NULL,
+	@p_nombre		VARCHAR(30),
+	@p_direccion	VARCHAR(30),
+	@p_localidad	VARCHAR(30),
+	@p_provincia	VARCHAR(30)
+AS
+BEGIN
+	DECLARE @existe BIT
+
+	EXEC gestion_sede.usp_ExisteSede
+		@p_nombre		= @p_nombre,
+		@p_direccion	= @p_direccion,
+		@p_localidad	= @p_localidad,
+		@p_provincia	= @p_provincia,
+		@r_existe		= @existe OUTPUT
+
+	IF @existe = 1
+	BEGIN
+		EXEC gestion_sede.usp_InsertarSede
+			@p_id			= @p_id,
+			@p_nombre		= @p_nombre,
+			@p_direccion	= @p_direccion,
+			@p_localidad	= @p_localidad,
+			@p_provincia	= @p_provincia
+	END
+	ELSE
+	BEGIN
+		INSERT INTO gestion_sede.Sede (
+			nombre,
+			direccion,
+			localidad,
+			provincia
+		)
+		VALUES (
+			@p_nombre,
+			@p_direccion,
+			@p_localidad,
+			@p_provincia
+		)
+	END
+END
+GO	
+
+-- ACTUALIZAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede
+	@p_id			INT,
+	@p_nombre		VARCHAR(30) = NULL,
+	@p_direccion	VARCHAR(30) = NULL,
+	@p_localidad	VARCHAR(30) = NULL,
+	@p_provincia	VARCHAR(30) = NULL
+AS
+BEGIN
+
+	DECLARE
+		@nombre		INT,
+		@direccion	INT,
+		@localidad	DATE,
+		@provincia	TIME
+	SELECT
+		@nombre		= nombre,
+		@direccion	= direccion,
+		@localidad	= localidad,
+		@provincia	= provincia
+	FROM gestion_sede.Sede
+	WHERE id = @p_id
+
+    UPDATE gestion_sede.Sede
+    SET
+        nombre			= ISNULL(@p_nombre, @nombre),
+        direccion		= ISNULL(@p_direccion, @direccion),
+        localidad		= ISNULL(@p_localidad, @localidad),
+        provincia		= ISNULL(@p_provincia, @provincia)
+    WHERE id = @p_id;
+END
+GO
+
+-- BORRAR
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
+	@p_id		INT
+AS
+BEGIN
+	DELETE gestion_sede.Sede 
+	WHERE id = @p_id	
+END
+GO
+
+
+-- PROCEDURES SEDE
+
 
 --IMPORTAR SEDE
 
@@ -1463,10 +1752,10 @@ AS
 BEGIN
 	set nocount on
 	CREATE TABLE #csv_TT (
-		id_sede INT,
-	    nombre VARCHAR(40),
-	    direccion VARCHAR(30),
-		basura CHAR(1)
+	    nombre		VARCHAR(30),
+	    direccion	VARCHAR(30),
+		localidad	VARCHAR(30),
+		provincia	VARCHAR(30)
 	)
 	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
 											FROM ''' + @p_ruta + ''' 
@@ -1479,31 +1768,41 @@ BEGIN
 	EXEC (@consulta_sql)
 
 	DECLARE 
-	 @id INT,
-	 @nombre VARCHAR(40),
-	 @direc VARCHAR(30)
+		@nombre		VARCHAR(30),
+		@direccion	VARCHAR(30),
+		@localidad	VARCHAR(30),
+		@provincia	VARCHAR(30)
 
-	DECLARE cursor_prestadores CURSOR FOR 
-    SELECT id_sede, nombre, direccion
+	DECLARE cursor_sedes CURSOR FOR 
+    SELECT nombre, direccion, localidad, provincia
     FROM #csv_TT;
 
-	OPEN cursor_prestadores
+	OPEN cursor_sedes
 
-	FETCH NEXT FROM cursor_prestadores INTO @id, @nombre, @direc;
+	FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
 
 	WHILE @@FETCH_STATUS = 0	
 	BEGIN
 		
-		EXEC gestion_paciente.usp_InsertarPrestador
-			@p_id		= @id,
-			@p_nombre	= @nombre,
-			@p_direc	= @direc
+		EXEC gestion_sede.usp_InsertarSede
+			@p_nombre		= @nombre,
+			@p_direccion	= @direccion,
+			@p_localidad	= @localidad,
+			@p_provincia	= @provincia
+
 			
-	
-		FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
+		FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
 	END
-	CLOSE cursor_prestadores
-	DEALLOCATE cursor_prestadores	
+	CLOSE cursor_sedes
+	DEALLOCATE cursor_sedes	
 	
 END
 GO
+
+/*
+-- para testear
+
+EXEC gestion_paciente.usp_ImportarSede
+	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
+	
+*/
