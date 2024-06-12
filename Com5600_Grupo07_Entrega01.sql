@@ -220,10 +220,93 @@ END;
 GO
 
 
+-- CREACION DE TABLAS DEL ESQUEMA GESTION_SEDE
+
+-- CREACION TABLA SEDE
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Sede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Sede (
+		 id				INT IDENTITY(1,1),
+		 nombre			VARCHAR(30),
+		 direccion		VARCHAR(30),
+		 localidad		VARCHAR(30),
+		 provincia		VARCHAR(30),
+
+		 CONSTRAINT PK_SedeID PRIMARY KEY (id)
+	 )
+END
+GO
+
+-- CREACION TABLA MEDICO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Medico'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Medico(
+		 id				INT IDENTITY(1,1),
+		 nombre			VARCHAR(25),
+		 apellido		VARCHAR(20),
+		 matricula		INT UNIQUE,
+		 CONSTRAINT PK_MedicoID PRIMARY KEY (id)
+	 );
+END;
+GO
+
+-- CREACION TABLA DIASXSEDE
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'DiasXSede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.DiasXSede (
+		 id				INT,
+		 id_sede		INT,
+		 id_medico		INT,
+		 dia			DATE,
+		 hora_inicio	TIME,
+
+	 CONSTRAINT PK_DiasxsedeID	PRIMARY KEY (id),
+	 CONSTRAINT FK_SedeID		FOREIGN KEY (id_sede)	REFERENCES gestion_sede.Sede(id),
+	 CONSTRAINT FK_MedicoID		FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id)
+	 );
+END;
+GO
+
+-- CREACION TABLA ESPECIALIDAD
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Especialidad'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Especialidad(
+		id			INT,
+		nombre		VARCHAR(20),
+
+		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
+	 );
+END;
+GO
+
 
 --- CREACION STORE PROCEDURES PACIENTE
 
--- Buscar existencia del paciente
+-- BUSCAR PACIENTE
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ExistePaciente
 	@p_nombre				VARCHAR(30),
 	@p_apellido				VARCHAR(30),
@@ -254,7 +337,7 @@ BEGIN
 END
 GO	
 
--- Insertar
+-- INSERTAR PACIENTE
 -- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
 -- los NULL son porque en la estructura de los archivos a importar no son valores dados.
 -- el null en p_id es un caso especifico, es identity por lo tanto, no deberia poder enviarse
@@ -363,7 +446,7 @@ END;
 GO
 
 
--- ACTUALIZACION
+-- ACTUALIZAR PACIENTE
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarPaciente
     @p_id                   INT,
@@ -442,7 +525,7 @@ BEGIN
 END;
 GO
 
--- Borrado
+-- BORRAR PACIENTE
 
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarPaciente
@@ -458,7 +541,7 @@ GO
 --- CREACION STORE PROCEDURES ESTUDIO
 
 
--- INSERTAR
+-- INSERTAR ESTUDIO
 
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarEstudio
@@ -503,7 +586,8 @@ BEGIN
 END;
 GO
 
--- ACTUALIZAR
+-- ACTUALIZAR ESTUDIO
+
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarEstudio
     @p_id                   INT,
     @p_id_paciente          INT,
@@ -537,8 +621,7 @@ END;
 GO
 
 
--- BORRADO
-
+-- BORRAR ESTUDIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarEstudio
 	@p_id INT
@@ -553,9 +636,7 @@ GO
 
 --- CREACION STORE PROCEDURES USUARIO
 
-
--- INSERTAR
-
+-- INSERTAR USUARIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarUsuario
 	@p_id				INT,
@@ -582,7 +663,7 @@ BEGIN
 END;
 GO
 
--- ACTUALIZAR
+-- ACTUALIZAR USUARIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarUsuario
     @p_id				INT,
@@ -614,7 +695,7 @@ BEGIN
 END;
 GO
 
--- BORRADO
+-- BORRAR USUARIO
 
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarUsuario
@@ -630,8 +711,7 @@ GO
 --- CREACION STORE PROCEDURES DOMICILIO
 
 
--- INSERTAR
-
+-- INSERTAR DOMICILIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarDomicilio
     @p_id INT				=	NULL,
@@ -672,7 +752,7 @@ END;
 GO
 
 
--- ACTUALIZAR
+-- ACTUALIZAR DOMICILIO
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarDomicilio
     @p_id           INT,
     @p_calle        VARCHAR(30) = NULL,
@@ -723,8 +803,7 @@ END;
 GO
 
 
--- BORRADO
-
+-- BORRAR DOMICILIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarDomicilio
 	@p_id INT
@@ -739,8 +818,7 @@ GO
 --- CREACION STORE PROCEDURES COBERTURA
 
 
--- INSERTAR
-
+-- INSERTAR COBERTURA
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarCobertura
     @p_id					INT,
@@ -768,7 +846,7 @@ END;
  GO
 
 
- -- ACTUALIZAR
+ -- ACTUALIZAR COBERTURA
 
  CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarCobertura
     @p_id                   INT,
@@ -803,8 +881,7 @@ END;
 GO
 
 
--- BORRADO
-
+-- BORRAR COBERTURA
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarCobertura
 	@p_id INT
@@ -818,6 +895,7 @@ GO
 
 --- CREACION STORE PROCEDURES PRESTADOR
 
+-- INSERTAR PRESTADOR
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPrestador
     @p_id_cobertura		INT	= NULL,
@@ -861,7 +939,7 @@ END;
 GO
 
 
--- ACTUALIZAR
+-- ACTUALIZAR PRESTADOR
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarPrestador
     @p_id				INT,
@@ -891,7 +969,7 @@ BEGIN
 END;
 GO
 
--- BORRADO
+-- BORRAR PRESTADOR
 
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarPrestador
@@ -903,28 +981,8 @@ BEGIN
 END;
 GO
 
--- FUNCION PARA IMPORTAR PACIENTES
+--- CREACION DE FUNCIONES
 
--- Av. Córdoba 2529
--- ENTRE RIOS 354
--- CHACABUCO 159 Y MONTECASEROS | LOPEZ ENTRE PLANEZ Y MATIENZO
--- AVENIDA 9 DE JULIO 857
--- RUTA NACIONAL 22 KM 856 (ASCENDENTE)
--- 51 Nº 456
--- Av. 520 2650
-
-
-/*testing:
-CREATE PROCEDURE ImprimirVariable
-@p_var varchar(max)
-AS
-BEGIN
-    PRINT @p_var;
-END;
-GO
-
-
-*/
 CREATE OR ALTER FUNCTION gestion_paciente.fn_ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
@@ -943,8 +1001,8 @@ BEGIN
 		SET @numero = SUBSTRING(@p_domicilio, CHARINDEX('KM', @p_domicilio) + 3, LEN(@p_domicilio))	-- +3 es porque al encontrar 'KM 2' necesitamos movernos hacia el inicio del '2' 
 		
 		SET @posicion_ini = PATINDEX('%[^0-9]%', @numero)											-- ^ operador de negacion, osea buscaria hasta no encontrar esos valores
-		-- CASO: RUTA NACIONAL 22 KM 856 (ASCENDENTE)
-		IF @posicion_ini != 0
+		
+		IF @posicion_ini != 0																		-- CASO: RUTA NACIONAL 22 KM 856 (ASCENDENTE)	
 		BEGIN
 			SET @numero = SUBSTRING(@numero, 1, @posicion_ini - 1)
 		END
@@ -982,6 +1040,304 @@ BEGIN
 END
 GO
 
+--- CREACION STORE PROCEDURES SEDE
+
+-- BUSCAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede
+	@p_nombre		VARCHAR(30),
+	@p_direccion	VARCHAR(30),
+	@p_localidad	VARCHAR(30),
+	@p_provincia	VARCHAR(30),
+	@r_existe		BIT	OUTPUT
+AS
+BEGIN
+	SET @r_existe = 0
+	
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE nombre = @p_nombre
+			AND direccion = @p_direccion
+			AND localidad = @p_localidad
+			AND provincia = @p_provincia
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+END
+GO
+
+-- ACTUALIZAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede
+	@p_id			INT,
+	@p_nombre		VARCHAR(30) = NULL,
+	@p_direccion	VARCHAR(30) = NULL,
+	@p_localidad	VARCHAR(30) = NULL,
+	@p_provincia	VARCHAR(30) = NULL
+AS
+BEGIN
+
+	DECLARE
+		@nombre		INT,
+		@direccion	INT,
+		@localidad	DATE,
+		@provincia	TIME
+	SELECT
+		@nombre		= nombre,
+		@direccion	= direccion,
+		@localidad	= localidad,
+		@provincia	= provincia
+	FROM gestion_sede.Sede
+	WHERE id = @p_id
+
+    UPDATE gestion_sede.Sede
+    SET
+        nombre			= ISNULL(@p_nombre, @nombre),
+        direccion		= ISNULL(@p_direccion, @direccion),
+        localidad		= ISNULL(@p_localidad, @localidad),
+        provincia		= ISNULL(@p_provincia, @provincia)
+    WHERE id = @p_id;
+END
+GO
+
+-- INSERTAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede
+	@p_id			INT			= NULL,
+	@p_nombre		VARCHAR(30),
+	@p_direccion	VARCHAR(30),
+	@p_localidad	VARCHAR(30),
+	@p_provincia	VARCHAR(30)
+AS
+BEGIN
+	DECLARE @existe BIT
+
+	EXEC gestion_sede.usp_ExisteSede
+		@p_nombre		= @p_nombre,
+		@p_direccion	= @p_direccion,
+		@p_localidad	= @p_localidad,
+		@p_provincia	= @p_provincia,
+		@r_existe		= @existe OUTPUT
+
+	IF @existe = 1
+	BEGIN
+		EXEC gestion_sede.usp_ActualizarSede
+			@p_id			= @p_id,
+			@p_nombre		= @p_nombre,
+			@p_direccion	= @p_direccion,
+			@p_localidad	= @p_localidad,
+			@p_provincia	= @p_provincia
+	END
+	ELSE
+	BEGIN
+		INSERT INTO gestion_sede.Sede (
+			nombre,
+			direccion,
+			localidad,
+			provincia
+		)
+		VALUES (
+			@p_nombre,
+			@p_direccion,
+			@p_localidad,
+			@p_provincia
+		)
+	END
+END
+GO	
+
+-- BORRAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
+	@p_id	INT
+AS
+BEGIN
+	DELETE gestion_sede.Sede 
+	WHERE id = @p_id	
+END
+GO
+
+
+--- CREACION STORE PROCEDURES MEDICO
+
+-- BUSCAR MEDICO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteMedico 
+	@p_nombre			VARCHAR(30),
+	@p_apellido			VARCHAR(30),
+	@p_matricula		INT,
+	@r_existe			BIT OUTPUT
+AS
+BEGIN
+	SET @r_existe = 0
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE nombre			= @p_nombre
+			AND	apellido		= @p_apellido
+			AND matricula		= @p_matricula
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+END
+GO	
+
+-- ACTUALIZAR MEDICO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarMedico
+	@p_id				INT, 
+	@p_nombre			VARCHAR(25)	= NULL, 
+	@p_apellido			VARCHAR(20)	= NULL,
+	@p_matricula		INT			= NULL
+AS
+BEGIN
+	DECLARE
+		@nombre		VARCHAR(30),
+		@apellido	VARCHAR(30),
+		@matricula	INT
+	SELECT
+		@nombre		= nombre,
+		@apellido	= apellido,
+		@matricula	= matricula
+
+	FROM gestion_sede.Medico
+	WHERE id = @p_id
+
+	UPDATE	gestion_sede.Medico
+	SET	
+		nombre		= ISNULL(@p_nombre, @nombre),
+		apellido	= ISNULL(@p_apellido, @apellido),
+		matricula	= ISNULL(@p_matricula, @matricula)
+	WHERE id = @p_id
+END
+GO
+
+-- INSERTAR MEDICO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
+	@p_id INT, 
+	@p_nombre VARCHAR(25), 
+	@p_apellido VARCHAR(20),
+	@p_matricula INT
+AS
+BEGIN
+	DECLARE @existe	BIT
+	EXEC gestion_sede.usp_ExisteMedico
+		@p_nombre		= @p_nombre,
+		@p_apellido		= @p_apellido,
+		@p_matricula	= @p_matricula,
+		@r_existe		= @existe OUTPUT
+
+	IF @existe = 1
+	BEGIN
+		EXEC gestion_sede.usp_ActualizarMedico
+			@p_id			= @p_id,
+			@p_nombre		= @p_nombre,
+			@p_apellido		= @p_apellido,
+			@p_matricula	= @p_matricula
+	END
+	ELSE
+	BEGIN
+		INSERT INTO gestion_sede.Medico (
+			nombre,
+			apellido,
+			matricula
+		)
+		VALUES (
+			@p_nombre,
+			@p_apellido,
+			@p_matricula
+		)
+
+	END
+END
+GO
+
+-- BORRAR MEDICO
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarMedico
+	@p_id INT
+AS
+	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
+GO
+
+
+--- CREACION STORE PROCEDURES DIASXSEDE
+
+-- INSERTAR DIASXSEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarDiasXSede
+	@id				INT,
+	@id_sede		INT,
+	@id_medico		INT, 
+	@dia			DATE, 
+	@hora_inicio	TIME
+AS
+	IF(DATEPART(MINUTE, @hora_inicio) IN (0,15,30,45))
+		INSERT INTO gestion_sede.DiasXSede(
+			id,
+			id_sede,
+			id_medico,
+			dia,
+			hora_inicio
+		)
+		VALUES (
+			@id_sede,
+			@id_medico,
+			@dia,
+			@hora_inicio
+		);
+GO	
+
+-- ACTUALIZAR DIASXSEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarDiasXSede 
+	@p_id			INT,
+	@p_id_sede		INT		= NULL,
+	@p_id_medico	INT		= NULL, 
+	@p_dia			DATE	= NULL, 
+	@p_hora_inicio	TIME	= NULL
+AS
+BEGIN
+
+	DECLARE
+		@id_sede		INT,
+		@id_medico		INT,
+		@dia			DATE,
+		@hora_inicio	TIME
+	SELECT
+		@id_sede		= id_sede,
+		@id_medico		= id_medico,
+		@dia			= dia,
+		@hora_inicio	= hora_inicio
+	FROM gestion_sede.DiasXSede
+	WHERE id = @p_id
+
+    UPDATE gestion_sede.DiasXSede
+    SET
+        id_sede			= ISNULL(@p_id_sede, @id_sede),
+        id_medico		= ISNULL(@p_id_medico, @id_medico),
+        dia				= ISNULL(@p_dia, @dia),
+        hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
+    WHERE id = @p_id;
+END
+GO
+
+-- BORRAR DIASXSEDE
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarDias
+	@p_sede		INT,
+	@p_medico	INT
+AS
+	DELETE gestion_sede.Diasxsede 
+	WHERE id_sede = @p_sede 
+		AND id_medico = @p_medico;		
+GO
+
+--- CREACION DE PROCEDIMIENTOS DE IMPORTACION
 
 -- IMPORTAR PACIENTE
 
@@ -1148,8 +1504,71 @@ DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informaci
 EXEC gestion_paciente.usp_ImportarPrestadores 
 		@p_ruta = @p_ruta
 GO
-
 */
+
+--IMPORTAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarSede
+	@p_ruta		VARCHAR(max)
+AS
+BEGIN
+	set nocount on
+	CREATE TABLE #csv_TT (
+	    nombre		VARCHAR(30),
+	    direccion	VARCHAR(30),
+		localidad	VARCHAR(30),
+		provincia	VARCHAR(30)
+	)
+	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+											FROM ''' + @p_ruta + ''' 
+											WITH (
+												FIELDTERMINATOR = '';'',
+												ROWTERMINATOR = ''\n'',
+												CODEPAGE = ''65001'',
+												FIRSTROW = 2
+											);'
+	EXEC (@consulta_sql)
+
+	DECLARE 
+		@nombre		VARCHAR(30),
+		@direccion	VARCHAR(30),
+		@localidad	VARCHAR(30),
+		@provincia	VARCHAR(30)
+
+	DECLARE cursor_sedes CURSOR FOR 
+    SELECT nombre, direccion, localidad, provincia
+    FROM #csv_TT;
+
+	OPEN cursor_sedes
+
+	FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
+
+	WHILE @@FETCH_STATUS = 0	
+	BEGIN
+		
+		EXEC gestion_sede.usp_InsertarSede
+			@p_nombre		= @nombre,
+			@p_direccion	= @direccion,
+			@p_localidad	= @localidad,
+			@p_provincia	= @provincia
+
+			
+		FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
+	END
+	CLOSE cursor_sedes
+	DEALLOCATE cursor_sedes	
+	
+END
+GO
+
+/*
+-- para testear
+
+EXEC gestion_paciente.usp_ImportarSede
+	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
+	
+*/
+
 
 /*
 Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
@@ -1236,646 +1655,139 @@ EXEC gestion_paciente.usp_AutorizarEstudio
 
 */
 
--- CREACION LOGINS
+
+--- CREACION LOGINS
 EXECUTE AS USER = 'dbo'	-- ya que tiene todo el control para asignar permisos
 
+-- ADMINISTRADOR
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.syslogins
-	WHERE name = 'dba'
+	WHERE name = 'db_administrador'
 )
 BEGIN
-	CREATE LOGIN dba WITH PASSWORD = 'pepe123'
+	CREATE LOGIN db_administrador WITH PASSWORD = 'pepe123'
 END
 
+-- DESARROLLADOR
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.syslogins
-	WHERE name = 'desarrollador'
+	WHERE name = 'db_desarrollador'
 )
 BEGIN
-	CREATE LOGIN desarrollador WITH PASSWORD = 'pepe123'
+	CREATE LOGIN db_desarrollador WITH PASSWORD = 'pepe123'
 END
 
-
+-- OPERADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.syslogins
-	WHERE name = 'operador_clinica'
+	WHERE name = 'clinica_operador'
 )
 BEGIN
-	CREATE LOGIN operador_clinica WITH PASSWORD = 'pepe123'
+	CREATE LOGIN clinica_operador WITH PASSWORD = 'pepe123'
 END
 
+-- ADMINISTRADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.syslogins
-	WHERE name = 'admin_clinica'
+	WHERE name = 'clinica_admin'
 )
 BEGIN
-	CREATE LOGIN admin_clinica WITH PASSWORD = 'pepe123'
+	CREATE LOGIN clinica_admin WITH PASSWORD = 'pepe123'
 END
 
+-- IMPORTADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.syslogins
-	WHERE name = 'importador_clinica'
+	WHERE name = 'clinica_importador'
 )
 BEGIN
-	CREATE LOGIN importador_clinica WITH PASSWORD = 'pepe123'
+	CREATE LOGIN clinica_importador WITH PASSWORD = 'pepe123'
 END
 
--- CREACION USUARIOS
+--- CREACION USUARIOS
+
+-- USUARIO ADMINISTRADOR
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.sysusers
-	WHERE name = 'dba'
+	WHERE name = 'db_administrador'
 )
 BEGIN
-	CREATE USER dba FOR LOGIN dba
+	CREATE USER db_administrador FOR LOGIN db_administrador
+
 	GRANT ALL TO dba
 END
 GO
 
-
+-- USUARIO DESARROLLADOR
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.sysusers
-	WHERE name = 'desarrollador'
+	WHERE name = 'db_desarrollador'
 )
 BEGIN
-	CREATE USER desarrollador FOR LOGIN desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO desarrollador
-	-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO desarrollador
+	CREATE USER db_desarrollador FOR LOGIN db_desarrollador
+
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
+	-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
 END
 GO
 
+-- USUARIO OPERADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.sysusers
-	WHERE name = 'operador_clinica'
+	WHERE name = 'clinica_operador'
 )
 BEGIN
-	CREATE USER operador_clinica FOR LOGIN operador_clinica
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO operador_clinica
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO operador_clinica
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO operador_clinica
+	CREATE USER clinica_operador FOR LOGIN clinica_operador
 
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO operador_clinica
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO operador_clinica
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO operador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
+
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
 END
 GO
 
+-- USUARIO ADMINISTRADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.sysusers
-	WHERE name = 'admin_clinica'
+	WHERE name = 'clinica_admin'
 )
 BEGIN
-	CREATE USER admin_clinica FOR LOGIN admin_clinica
-	GRANT EXECUTE ON SCHEMA::gestion_paciente	TO admin_clinica
-	GRANT EXECUTE ON SCHEMA::gestion_sede		TO admin_clinica
-	-- GRANT EXECUTE ON SCHEMA::gestion_turno	TO admin_clinica
+	CREATE USER clinica_admin FOR LOGIN clinica_admin
+
+	GRANT EXECUTE ON SCHEMA::gestion_paciente	TO clinica_admin
+	GRANT EXECUTE ON SCHEMA::gestion_sede		TO clinica_admin
+	-- GRANT EXECUTE ON SCHEMA::gestion_turno	TO clinica_admin
 END
 GO
 
+-- USUARIO IMPORTADOR DE LA CLINICA
 IF NOT EXISTS (
 	SELECT 1
 	FROM sys.sysusers
-	WHERE name = 'importador_clinica'
+	WHERE name = 'clinica_importador'
 )
 BEGIN
-	CREATE USER importador_clinica FOR LOGIN importador_clinica
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO operador_clinica
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO operador_clinica
+	CREATE USER clinica_importador FOR LOGIN clinica_importador
+
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO clinica_importador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO clinica_importador
 END
 GO
-
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Sede'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Sede (
-		 id				INT IDENTITY(1,1),
-		 nombre			VARCHAR(30),
-		 direccion		VARCHAR(30),
-		 localidad		VARCHAR(30),
-		 provincia		VARCHAR(30),
-
-		 CONSTRAINT PK_SedeID PRIMARY KEY (id)
-	 )
-END
-GO
-
-
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Medico'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Medico(
-		 id				INT IDENTITY(1,1),
-		 nombre			VARCHAR(25),
-		 apellido		VARCHAR(20),
-		 matricula		INT UNIQUE,
-		 CONSTRAINT PK_MedicoID PRIMARY KEY (id)
-	 );
-END;
-GO
-
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'DiasXSede'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.DiasXSede (
-		 id				INT,
-		 id_sede		INT,
-		 id_medico		INT,
-		 dia			DATE,
-		 hora_inicio	TIME,
-
-	 CONSTRAINT PK_DiasxsedeID	PRIMARY KEY (id),
-	 CONSTRAINT FK_SedeID		FOREIGN KEY (id_sede)	REFERENCES gestion_sede.Sede(id),
-	 CONSTRAINT FK_MedicoID		FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id)
-	 );
-END;
-GO
-
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Especialidad'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Especialidad(
-		id			INT,
-		nombre		VARCHAR(20),
-
-		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
-	 );
-END;
-GO
-
 REVERT	-- para quitar el seteo de usuario DBO
 GO
---- CREACION STORE PROCEDURES SEDE
-
--- BUSCAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede 
-	@p_nombre		VARCHAR(30), 
-	@p_direcccion	VARCHAR(30),
-	@r_existe		BIT	OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre			= @p_nombre
-			AND	direccion		= @p_direcccion
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO	
-
--- ACTUALIZAR 
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede 
-	@p_id			INT, 
-	@p_nombre		VARCHAR(30) = NULL, 
-	@p_direcccion	VARCHAR(30) = NULL
-AS
-BEGIN
-	DECLARE
-		@nombre		VARCHAR(30),
-		@direccion	VARCHAR(30)
-	SELECT
-		@nombre		= nombre,
-		@direccion	= direccion
-	FROM gestion_sede.Sede
-	WHERE id = @p_id
-
-	UPDATE	gestion_sede.Sede
-	SET	
-		nombre		= ISNULL(@p_nombre, @nombre),
-		direccion	= ISNULL(@p_direcccion, @direccion)
-	WHERE id = @p_id
-END
-GO
-
---	INSERTAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede 
-	@p_id			INT			= NULL, 
-	@p_nombre		VARCHAR(30), 
-	@p_direcccion	VARCHAR(30)
-AS
-BEGIN
-	DECLARE @existe		BIT
-	EXEC gestion_sede.usp_ExisteSede
-		@p_nombre		= @p_nombre,
-		@p_direcccion	= @p_direcccion,
-		@r_existe		= @existe OUTPUT
-
-	IF @existe = 1
-	BEGIN
-		EXEC gestion_sede.usp_ActualizarSede
-			@p_id	= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_direcccion	= @p_direcccion
-	END
-	ELSE
-		INSERT INTO gestion_sede.Sede (
-			nombre,
-			direccion
-		)
-		VALUES (
-			@p_nombre,
-			@p_direcccion
-		);
-END
-GO
-
--- BORRAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
-	@p_id INT
-AS
-	DELETE FROM gestion_sede.Sede WHERE id = @p_id;
-GO
 
 
---- CREACION STORE PROCEDURES MEDICO
 
-
--- BUSCAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteMedico 
-	@p_nombre			VARCHAR(30),
-	@p_apellido			VARCHAR(30),
-	@p_matricula		INT,
-	@r_existe			BIT OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Medico
-		WHERE nombre			= @p_nombre
-			AND	apellido		= @p_apellido
-			AND matricula		= @p_matricula
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO	
-
--- ACTUALIZAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarMedico
-	@p_id				INT, 
-	@p_nombre			VARCHAR(25)	= NULL, 
-	@p_apellido			VARCHAR(20)	= NULL,
-	@p_matricula		INT			= NULL
-AS
-BEGIN
-	DECLARE
-		@nombre		VARCHAR(30),
-		@apellido	VARCHAR(30),
-		@matricula	INT
-	SELECT
-		@nombre		= nombre,
-		@apellido	= apellido,
-		@matricula	= matricula
-
-	FROM gestion_sede.Medico
-	WHERE id = @p_id
-
-	UPDATE	gestion_sede.Medico
-	SET	
-		nombre		= ISNULL(@p_nombre, @nombre),
-		apellido	= ISNULL(@p_apellido, @apellido),
-		matricula	= ISNULL(@p_matricula, @matricula)
-	WHERE id = @p_id
-END
-GO
-
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
-	@p_id INT, 
-	@p_nombre VARCHAR(25), 
-	@p_apellido VARCHAR(20),
-	@p_matricula INT
-AS
-BEGIN
-	DECLARE @existe	BIT
-	EXEC gestion_sede.usp_ExisteMedico
-		@p_nombre		= @p_nombre,
-		@p_apellido		= @p_apellido,
-		@p_matricula	= @p_matricula,
-		@r_existe		= @existe OUTPUT
-
-	IF @existe = 1
-	BEGIN
-		EXEC gestion_sede.usp_ActualizarMedico
-			@p_id			= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_apellido		= @p_apellido,
-			@p_matricula	= @p_matricula
-	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Medico (
-			nombre,
-			apellido,
-			matricula
-		)
-		VALUES (
-			@p_nombre,
-			@p_apellido,
-			@p_matricula
-		)
-
-	END
-END
-GO
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarMedico
-	@p_id INT
-AS
-	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
-GO
-
-
---- CREACION STORE PROCEDURES DIASXSEDE
-
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarDiasXSede
-	@id				INT,
-	@id_sede		INT,
-	@id_medico		INT, 
-	@dia			DATE, 
-	@hora_inicio	TIME
-AS
-	IF(DATEPART(MINUTE, @hora_inicio) IN (0,15,30,45))
-		INSERT INTO gestion_sede.DiasXSede(
-			id,
-			id_sede,
-			id_medico,
-			dia,
-			hora_inicio
-		)
-		VALUES (
-			@id_sede,
-			@id_medico,
-			@dia,
-			@hora_inicio
-		);
-GO	
-
--- ACTUALIZAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarDiasXSede 
-	@p_id			INT,
-	@p_id_sede		INT		= NULL,
-	@p_id_medico	INT		= NULL, 
-	@p_dia			DATE	= NULL, 
-	@p_hora_inicio	TIME	= NULL
-AS
-BEGIN
-
-	DECLARE
-		@id_sede		INT,
-		@id_medico		INT,
-		@dia			DATE,
-		@hora_inicio	TIME
-	SELECT
-		@id_sede		= id_sede,
-		@id_medico		= id_medico,
-		@dia			= dia,
-		@hora_inicio	= hora_inicio
-	FROM gestion_sede.DiasXSede
-	WHERE id = @p_id
-
-    UPDATE gestion_sede.DiasXSede
-    SET
-        id_sede			= ISNULL(@p_id_sede, @id_sede),
-        id_medico		= ISNULL(@p_id_medico, @id_medico),
-        dia				= ISNULL(@p_dia, @dia),
-        hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
-    WHERE id = @p_id;
-END
-GO
-
--- BORRAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarDias
-	@p_sede		INT,
-	@p_medico	INT
-AS
-	DELETE gestion_sede.Diasxsede 
-	WHERE id_sede = @p_sede 
-		AND id_medico = @p_medico;		
-GO
-
-
--- CREACION STORE PROCEDURES SEDE
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30),
-	@r_existe		BIT	OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre = @p_nombre
-			AND direccion = @p_direccion
-			AND localidad = @p_localidad
-			AND provincia = @p_provincia
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede
-	@p_id			INT			= NULL,
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30)
-AS
-BEGIN
-	DECLARE @existe BIT
-
-	EXEC gestion_sede.usp_ExisteSede
-		@p_nombre		= @p_nombre,
-		@p_direccion	= @p_direccion,
-		@p_localidad	= @p_localidad,
-		@p_provincia	= @p_provincia,
-		@r_existe		= @existe OUTPUT
-
-	IF @existe = 1
-	BEGIN
-		EXEC gestion_sede.usp_InsertarSede
-			@p_id			= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_direccion	= @p_direccion,
-			@p_localidad	= @p_localidad,
-			@p_provincia	= @p_provincia
-	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Sede (
-			nombre,
-			direccion,
-			localidad,
-			provincia
-		)
-		VALUES (
-			@p_nombre,
-			@p_direccion,
-			@p_localidad,
-			@p_provincia
-		)
-	END
-END
-GO	
-
--- ACTUALIZAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede
-	@p_id			INT,
-	@p_nombre		VARCHAR(30) = NULL,
-	@p_direccion	VARCHAR(30) = NULL,
-	@p_localidad	VARCHAR(30) = NULL,
-	@p_provincia	VARCHAR(30) = NULL
-AS
-BEGIN
-
-	DECLARE
-		@nombre		INT,
-		@direccion	INT,
-		@localidad	DATE,
-		@provincia	TIME
-	SELECT
-		@nombre		= nombre,
-		@direccion	= direccion,
-		@localidad	= localidad,
-		@provincia	= provincia
-	FROM gestion_sede.Sede
-	WHERE id = @p_id
-
-    UPDATE gestion_sede.Sede
-    SET
-        nombre			= ISNULL(@p_nombre, @nombre),
-        direccion		= ISNULL(@p_direccion, @direccion),
-        localidad		= ISNULL(@p_localidad, @localidad),
-        provincia		= ISNULL(@p_provincia, @provincia)
-    WHERE id = @p_id;
-END
-GO
-
--- BORRAR
-
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
-	@p_id		INT
-AS
-BEGIN
-	DELETE gestion_sede.Sede 
-	WHERE id = @p_id	
-END
-GO
-
-
--- PROCEDURES SEDE
-
-
---IMPORTAR SEDE
-
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarSede
-	@p_ruta		VARCHAR(max)
-AS
-BEGIN
-	set nocount on
-	CREATE TABLE #csv_TT (
-	    nombre		VARCHAR(30),
-	    direccion	VARCHAR(30),
-		localidad	VARCHAR(30),
-		provincia	VARCHAR(30)
-	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
-											FROM ''' + @p_ruta + ''' 
-											WITH (
-												FIELDTERMINATOR = '';'',
-												ROWTERMINATOR = ''\n'',
-												CODEPAGE = ''65001'',
-												FIRSTROW = 2
-											);'
-	EXEC (@consulta_sql)
-
-	DECLARE 
-		@nombre		VARCHAR(30),
-		@direccion	VARCHAR(30),
-		@localidad	VARCHAR(30),
-		@provincia	VARCHAR(30)
-
-	DECLARE cursor_sedes CURSOR FOR 
-    SELECT nombre, direccion, localidad, provincia
-    FROM #csv_TT;
-
-	OPEN cursor_sedes
-
-	FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-		EXEC gestion_sede.usp_InsertarSede
-			@p_nombre		= @nombre,
-			@p_direccion	= @direccion,
-			@p_localidad	= @localidad,
-			@p_provincia	= @provincia
-
-			
-		FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-	END
-	CLOSE cursor_sedes
-	DEALLOCATE cursor_sedes	
-	
-END
-GO
-
-/*
--- para testear
-
-EXEC gestion_paciente.usp_ImportarSede
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
-	
-*/
