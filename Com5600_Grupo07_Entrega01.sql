@@ -1454,3 +1454,56 @@ CREATE PROCEDURE gestion_sede.usp_BorrarDias
 AS
 	DELETE FROM gestion_sede.Diasxsede WHERE id_sede=@sede AND id_medico=@medico;		
 GO
+
+--IMPORTAR SEDE
+
+CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarSede
+	@p_ruta		VARCHAR(max)
+AS
+BEGIN
+	set nocount on
+	CREATE TABLE #csv_TT (
+		id_sede INT,
+	    nombre VARCHAR(40),
+	    direccion VARCHAR(30),
+		basura CHAR(1)
+	)
+	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+											FROM ''' + @p_ruta + ''' 
+											WITH (
+												FIELDTERMINATOR = '';'',
+												ROWTERMINATOR = ''\n'',
+												CODEPAGE = ''65001'',
+												FIRSTROW = 2
+											);'
+	EXEC (@consulta_sql)
+
+	DECLARE 
+	 @id INT,
+	 @nombre VARCHAR(40),
+	 @direc VARCHAR(30)
+
+	DECLARE cursor_prestadores CURSOR FOR 
+    SELECT id_sede, nombre, direccion
+    FROM #csv_TT;
+
+	OPEN cursor_prestadores
+
+	FETCH NEXT FROM cursor_prestadores INTO @id, @nombre, @direc;
+
+	WHILE @@FETCH_STATUS = 0	
+	BEGIN
+		
+		EXEC gestion_paciente.usp_InsertarPrestador
+			@p_id		= @id,
+			@p_nombre	= @nombre,
+			@p_direc	= @direc
+			
+	
+		FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
+	END
+	CLOSE cursor_prestadores
+	DEALLOCATE cursor_prestadores	
+	
+END
+GO
