@@ -1237,50 +1237,121 @@ EXEC gestion_paciente.usp_AutorizarEstudio
 */
 
 -- CREACION LOGINS
-/*
-CREATE LOGIN dba WITH PASSWORD = 'pepe123'
-CREATE LOGIN desarrollador WITH PASSWORD = 'pepe123'
-CREATE LOGIN operador_clinica WITH PASSWORD = 'pepe123'
-CREATE LOGIN admin_clinica WITH PASSWORD = 'pepe123'
-CREATE LOGIN importador_clinica WITH PASSWORD = 'pepe123'
-GO
-*/
+EXECUTE AS USER = 'dbo'	-- ya que tiene todo el control para asignar permisos
+
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.syslogins
+	WHERE name = 'dba'
+)
+BEGIN
+	CREATE LOGIN dba WITH PASSWORD = 'pepe123'
+END
+
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.syslogins
+	WHERE name = 'desarrollador'
+)
+BEGIN
+	CREATE LOGIN desarrollador WITH PASSWORD = 'pepe123'
+END
+
+
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.syslogins
+	WHERE name = 'operador_clinica'
+)
+BEGIN
+	CREATE LOGIN operador_clinica WITH PASSWORD = 'pepe123'
+END
+
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.syslogins
+	WHERE name = 'admin_clinica'
+)
+BEGIN
+	CREATE LOGIN admin_clinica WITH PASSWORD = 'pepe123'
+END
+
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.syslogins
+	WHERE name = 'importador_clinica'
+)
+BEGIN
+	CREATE LOGIN importador_clinica WITH PASSWORD = 'pepe123'
+END
 
 -- CREACION USUARIOS
-USE master
-CREATE USER dba FOR LOGIN dba
-GRANT ALL TO dba
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.sysusers
+	WHERE name = 'dba'
+)
+BEGIN
+	CREATE USER dba FOR LOGIN dba
+	GRANT ALL TO dba
+END
 GO
 
-USE Com5600G07
 
-CREATE USER desarrollador FOR LOGIN desarrollador
-GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_usuario		TO desarrollador
--- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO desarrollador
--- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO desarrollador
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.sysusers
+	WHERE name = 'desarrollador'
+)
+BEGIN
+	CREATE USER desarrollador FOR LOGIN desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO desarrollador
+	-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO desarrollador
+END
 GO
 
-CREATE USER operador_clinica FOR LOGIN operador_clinica;
-GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO operador_clinica
-GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO operador_clinica
-GRANT EXECUTE ON OBJECT::gestion_paciente.usp_EliminarPaciente		TO operador_clinica
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.sysusers
+	WHERE name = 'operador_clinica'
+)
+BEGIN
+	CREATE USER operador_clinica FOR LOGIN operador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO operador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO operador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO operador_clinica
 
--- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO operador_clinica
--- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO operador_clinica
--- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_EliminarTurno		TO operador_clinica
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO operador_clinica
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO operador_clinica
+	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO operador_clinica
+END
 GO
 
-CREATE USER admin_clinica FOR LOGIN admin_clinica
-GRANT EXECUTE ON SCHEMA::gestion_paciente	TO admin_clinica
--- GRANT EXECUTE ON SCHEMA::gestion_sede	TO admin_clinica
--- GRANT EXECUTE ON SCHEMA::gestion_turno	TO admin_clinica
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.sysusers
+	WHERE name = 'admin_clinica'
+)
+BEGIN
+	CREATE USER admin_clinica FOR LOGIN admin_clinica
+	GRANT EXECUTE ON SCHEMA::gestion_paciente	TO admin_clinica
+	GRANT EXECUTE ON SCHEMA::gestion_sede		TO admin_clinica
+	-- GRANT EXECUTE ON SCHEMA::gestion_turno	TO admin_clinica
+END
 GO
 
-CREATE USER importador_clinica FOR LOGIN importador_clinica
-GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO operador_clinica
-GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO operador_clinica
+IF NOT EXISTS (
+	SELECT 1
+	FROM sys.sysusers
+	WHERE name = 'importador_clinica'
+)
+BEGIN
+	CREATE USER importador_clinica FOR LOGIN importador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO operador_clinica
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO operador_clinica
+END
 GO
-
 
 
 IF NOT EXISTS (
@@ -1360,6 +1431,8 @@ BEGIN
 END;
 GO
 
+REVERT	-- para quitar el seteo de usuario DBO
+GO
 --- CREACION STORE PROCEDURES SEDE
 
 -- BUSCAR
