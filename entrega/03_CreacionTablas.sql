@@ -45,7 +45,21 @@ BEGIN
 		borrado_logico		BIT DEFAULT 0,
 
 		CONSTRAINT CK_Pacientid CHECK(ISNUMERIC(id) = 1),
+		CONSTRAINT Ck_PacientNomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_PacientApell CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
+		CONSTRAINT Ck_PacientApellMatCHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0),
+		CONSTRAINT CK_Pacientefnac CHECK (TRY_CONVERT(date, fecha_nac) IS NOT NULL AND DATEPART(day, fecha_nac) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha_nac), DATEPART(month, fecha_nac),1))),
+		CONSTRAINT Ck_PacientTipoDoc CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
 		CONSTRAINT CK_PacientNumdoc CHECK(ISNUMERIC(num_doc) = 1),
+		CONSTRAINT Ck_PacientSexo CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
+		CONSTRAINT Ck_PacientGenero CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
+		CONSTRAINT Ck_PacientNacion CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),
+		CONSTRAINT Ck_PacientTelF CHECK(PATINDEX('%[^+0-9 ]%', tel_fijo) = 0),
+		CONSTRAINT Ck_PacientTelAlt CHECK(PATINDEX('%[^+0-9 ]%', tel_alt) = 0),
+		CONSTRAINT Ck_PacientTelLab CHECK(PATINDEX('%[^+0-9 ]%', tel_laboral) = 0),
+		CONSTRAINT CK_PacienteFRegistro CHECK (TRY_CONVERT(date, fecha_registro) IS NOT NULL AND DATEPART(day, fecha_registro) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha_registro), DATEPART(month, fecha_registro),1))),
+		CONSTRAINT CK_Pacientefactualiz CHECK (TRY_CONVERT(date, fecha_actualizacion) IS NOT NULL AND DATEPART(day, fecha_actualizacion) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha_actualizacion), DATEPART(month, fecha_actualizacion),1))),
+		CONSTRAINT CK_PacienteUsrActualiz CHECK (TRY_CONVERT(date, usr_actualizacion) IS NOT NULL AND DATEPART(day, usr_actualizacion) = DATEPART(day, DATEFROMPARTS(DATEPART(year, usr_actualizacion), DATEPART(month, usr_actualizacion),1))),
 		CONSTRAINT PK_PacienteID PRIMARY KEY (id)
 	);
 END;
@@ -74,6 +88,7 @@ BEGIN
 
 		CONSTRAINT CK_Estudioid CHECK(ISNUMERIC(id) = 1),
 		CONSTRAINT CK_Estudioid_paciente CHECK(ISNUMERIC(id_paciente) = 1),
+		CONSTRAINT Ck_EstudioNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre_estudio) = 0),
 		CONSTRAINT PK_EstudioID PRIMARY KEY(id),
 		CONSTRAINT FK_Estudio_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -100,6 +115,7 @@ BEGIN
 		CONSTRAINT CK_UsuarioId CHECK(ISNUMERIC(id) = 1),
 		CONSTRAINT CK_UsuarioId_paciente CHECK(ISNUMERIC(id_paciente) = 1),
 		CONSTRAINT PK_UsuarioID PRIMARY KEY(id),
+		CONSTRAINT CK_UsuarioFCreacion CHECK (TRY_CONVERT(date, fecha_creacion) IS NOT NULL AND DATEPART(day, fecha_creacion) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha_creacion), DATEPART(month, fecha_creacion),1))),
 		CONSTRAINT FK_Usuario_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
 END;
@@ -129,10 +145,14 @@ BEGIN
 
 		CONSTRAINT CK_DomicId CHECK(ISNUMERIC(id) = 1),
 		CONSTRAINT CK_DomicIdpaciente CHECK(ISNUMERIC(id_paciente) = 1),
+		CONSTRAINT Ck_DomicCalle CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', calle) = 0),
 		CONSTRAINT CK_Domicnumero CHECK(ISNUMERIC(numero) = 1),
 		CONSTRAINT CK_Domicpiso CHECK(ISNUMERIC(piso) = 1),
 		CONSTRAINT CK_Domicdepart CHECK(ISNUMERIC(departamento) = 1),
 		CONSTRAINT CK_DomicCodpostal CHECK(ISNUMERIC(cod_postal) = 1),
+		CONSTRAINT Ck_DomicPais CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
+		CONSTRAINT Ck_DomicProv CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
+		CONSTRAINT Ck_DomicLocalidad CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', localidad) = 0),
 		CONSTRAINT PK_DomicilioID PRIMARY KEY (id),
 		CONSTRAINT FK_Domicilio_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -161,6 +181,7 @@ BEGIN
 		CONSTRAINT CK_Cobertid_paciente CHECK(ISNUMERIC(id_paciente) = 1),
 		CONSTRAINT CK_Cobertnro_socio CHECK(ISNUMERIC(nro_socio) = 1),
 		CONSTRAINT PK_CoberturaID PRIMARY KEY (id),
+		CONSTRAINT CK_CoberturaFRegis CHECK (TRY_CONVERT(date, fecha_registro) IS NOT NULL AND DATEPART(day, fecha_registro) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha_registro), DATEPART(month, fecha_registro),1))),
 		CONSTRAINT FK_Cobertura_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
 END;
@@ -185,6 +206,7 @@ BEGIN
 
 		CONSTRAINT CK_Prestaid CHECK(ISNUMERIC(id) = 1),
 		CONSTRAINT CK_Prestaidcobertura CHECK(ISNUMERIC(id_cobertura) = 1),
+		CONSTRAINT Ck_Prestanomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
 		CONSTRAINT PK_PrestadorID PRIMARY KEY (id),
 		CONSTRAINT FK_Prestador_CoberturaID FOREIGN KEY (id_cobertura) REFERENCES gestion_paciente.Cobertura(id)
 	);
@@ -212,6 +234,8 @@ BEGIN
 		 provincia		VARCHAR(30),
 
 		CONSTRAINT CK_Sedeid CHECK(ISNUMERIC(id) = 1), 
+		CONSTRAINT Ck_Sedenomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_Sedeprov CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
 		CONSTRAINT PK_SedeID PRIMARY KEY (id)
 	 )
 END
@@ -233,6 +257,8 @@ BEGIN
 		 matricula		INT UNIQUE,
 
 		CONSTRAINT CK_Medicid CHECK(ISNUMERIC(id) = 1),
+		CONSTRAINT Ck_Medicnomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_Medicapell CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
 		CONSTRAINT CK_Medicmatricula CHECK(ISNUMERIC(matricula) = 1),
 		CONSTRAINT PK_MedicoID PRIMARY KEY (id)
 	 );
@@ -258,6 +284,8 @@ BEGIN
 	 CONSTRAINT CK_Diasid CHECK(ISNUMERIC(id) = 1),
 	 CONSTRAINT CK_Diasidsede CHECK(ISNUMERIC(id_sede) = 1),
 	 CONSTRAINT CK_Diasidmedico CHECK(ISNUMERIC(id_medico) = 1),
+	 CONSTRAINT CK_Diasdia CHECK (TRY_CONVERT(date, fecha) IS NOT NULL AND DATEPART(day, fecha) = DATEPART(day, DATEFROMPARTS(DATEPART(year, fecha), DATEPART(month, fecha),1))),
+	 CONSTRAINT CK_DiasHora CHECK (TRY_CONVERT(time, hora_inicio) IS NOT NULL AND DATEPART(hour, hora_inicio) <24 AND DATEPART(minute, hora_inicio) < 60),
 	 CONSTRAINT PK_DiasxsedeID	PRIMARY KEY (id),
 	 CONSTRAINT FK_SedeID		FOREIGN KEY (id_sede)	REFERENCES gestion_sede.Sede(id),
 	 CONSTRAINT FK_MedicoID		FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id)
@@ -279,7 +307,7 @@ BEGIN
 		nombre		VARCHAR(20),
 
 		CONSTRAINT CK_Espid CHECK(ISNUMERIC(id) = 1),
-		CONSTRAINT Ck_Espnomb CHECK(PATINDEX('%[^A-Za-z]%', nombre) = 0),
+		CONSTRAINT Ck_Espnomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
 		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
 	 );
 END;
