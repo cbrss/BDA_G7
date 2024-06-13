@@ -312,3 +312,66 @@ BEGIN
 	 );
 END;
 GO
+
+-- CREACION TABLAS DE ESQUEMA GESTION_TURNO
+	
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Estado'
+    AND schema_id = SCHEMA_ID('gestion_turno')
+)
+BEGIN
+	CREATE TABLE gestion_turno.Estado
+	(
+		id		INT,
+		nombre	VARCHAR(11),-- Disponible, Atendido Ausente Cancelado
+		CONSTRAINT PK_estadoID PRIMARY KEY(id)
+	)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Tipo'
+    AND schema_id = SCHEMA_ID('gestion_turno')
+)
+BEGIN
+	CREATE TABLE gestion_turno.Tipo
+	(
+		id		INT,
+		nombre	VARCHAR(11), -- Presencial Virtual
+		CONSTRAINT PK_tipoID PRIMARY KEY(id)
+	)
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Turno'
+    AND schema_id = SCHEMA_ID('gestion_turno')
+)
+BEGIN
+	CREATE TABLE gestion_turno.Turno
+	(
+		id				INT,
+		fecha				DATE,
+		hora				TIME,
+		id_paciente			INT,
+		id_medico			INT,
+		id_especialidad			INT,
+		id_direccion_atencion		INT,
+		id_estado_turno			INT,
+		id_tipo_turno			INT,
+		borrado_logico			BIT DEFAULT 0,
+		CONSTRAINT PK_turnoID PRIMARY KEY(id),
+		CONSTRAINT FK_pacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id),
+		CONSTRAINT FK_medicoID FOREIGN KEY(id_medico) REFERENCES gestion_sede.Medico(id),
+		CONSTRAINT FK_especialidadID FOREIGN KEY(id_especialidad) REFERENCES gestion_sede.Especialidad(id),
+		CONSTRAINT FK_estadoID FOREIGN KEY(id_estado_turno) REFERENCES gestion_turno.Estado(id),
+		CONSTRAINT FK_tipoID FOREIGN KEY(id_tipo_turno) REFERENCES gestion_turno.Tipo(id)		
+	)
+END
+GO
