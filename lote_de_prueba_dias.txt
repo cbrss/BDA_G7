@@ -1,0 +1,6 @@
+id,id_sede,id_medico,dia,hora_inicio
+e3,45,28,2024-08-34,17:05		---letra en el id
+23,4D,28,2024-08-34,17:05		---letra en el id_sede
+66,45,2x,2024-08-34,17:05		---letra en el id_medico
+73,45,28,2025-14-34,17:05		---fecha imposible
+54,45,28,2024-08-34,25:05		---hora imposible
