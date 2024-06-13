@@ -10,13 +10,83 @@
 		FECHA DE ENTREGA: 14/6/2024
 */
 
+--- FUNCIONES Y PROCEDIMIENTOS PARA LOS ITEMS DEL ENUNCIADO
+
+
+/*
+Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
+un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, se le envía el código 
+del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
+el importe a facturarle al paciente. 
+*/
+
+CREATE OR ALTER PROCEDURE gestion_paciente.usp_AutorizarEstudio
+	@p_id_estudio		VARCHAR(30),
+	@p_dni_paciente		INT,
+	@p_plan_prestador	VARCHAR(30),	
+	@p_ruta				VARCHAR(max),	
+	@p_respuesta		VARCHAR(100) OUTPUT
+AS
+BEGIN
+	set nocount on
+	-- busco id de paciente/historia clinica con el dni recibido
+	DECLARE @id_historia_clinica	INT				= (SELECT id FROM gestion_paciente.Paciente WHERE num_doc = @p_dni_paciente)
+	-- busco si esta autorizado el estudio
+	DECLARE @autorizado				BIT				= (SELECT autorizado FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica) 
+	-- busco nombre del estudio relacionado al codigo recibido
+	DECLARE @nombre_estudio			VARCHAR(100)	= (SELECT nombre_estudio FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica)
+
+	-- para el nombre del estudio y el plan recibido calculo importe y verifico si necesita autorizacion
+	DECLARE @importe				DECIMAL(10,2)
+	DECLARE @req_autorizacion		VARCHAR(5)
+	-- para guardar el archivo json en formato texto plano
+	DECLARE @json					VARCHAR(max)
+	-- para verificar la existencia del estudio y plan recibido
+	DECLARE @auxiliar				INT
+	SET		@auxiliar = 0
+
+	CREATE TABLE #json_TT (texto VARCHAR(max))
+	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #json_TT 
+											FROM ''' + @p_ruta + ''' 
+											WITH (CODEPAGE = ''65001'')'
+	EXEC (@consulta_sql)
+
+	SELECT @json = STRING_AGG(texto, ' ')	-- concatena todas las filas
+	FROM #json_TT;
+
+	SELECT
+		@importe			= CAST(JSON_VALUE(value, '$."Porcentaje Cobertura"') AS DECIMAL(10,2)) 
+								* CAST(JSON_VALUE(value, '$.Costo') AS DECIMAL(10,2)) /100,
+		@req_autorizacion	= JSON_VALUE(value, '$."Requiere autorizacion"'),
+		@auxiliar = @auxiliar + 1
+	FROM OPENJSON(@json) AS j
+	where JSON_VALUE(value, '$.Estudio') = @nombre_estudio 
+		AND JSON_VALUE(value, '$.Plan') = @p_plan_prestador
+	
+	IF	@auxiliar = 0
+	BEGIN
+		SET @p_respuesta = 'No se encontro informacion para el estudio y plan especificados.';
+		RETURN;
+	END
+	SET @p_respuesta = 'El importe a facturar al paciente es: ' + CAST(ISNULL(@importe, 0) as varchar(15)) + '$'
+	-- si necesita autorizacion y no la tiene, entonces rechazado.
+	IF @req_autorizacion = 'true' AND @autorizado = 0
+	BEGIN
+		SET @p_respuesta = 'Se requiere autorizacion y el estudio no esta autorizado.'
+	END
+	-- TODO: posiblemente se borra al terminar el scoop
+	drop table #json_TT
+END;
+GO
+
+
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
 
-CREATE OR ALTER PROCEDURE gestion_turno.udf_ConsultarDisponibilidad (
-	@p_id_medico		INT, 
-	@p_id_especialidad	INT,
-	@p_id_sede_atencion	INT,
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ConsultarDisponibilidad (
+	@p_id_medico			INT, 
+	@p_id_especialidad		INT,
+	@p_id_sede_atencion		INT,
 	@r_disponiblidad		INT OUTPUT
 )
 AS
@@ -63,10 +133,10 @@ END
 GO	
 
 
-CREATE OR ALTER FUNCTION gestion_paciente.udf_ParsearDomicilio (@p_domicilio VARCHAR(50))
+CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
-	numero		VARCHAR(30)
+	numero		INT
 )
 AS
 BEGIN
@@ -121,3 +191,69 @@ END
 GO
 
 
+--- AUXILIARES PARA IMPORTAR MEDICOS
+
+CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteEspecialidad (@p_nombre VARCHAR(20)
+)
+RETURNS BIT
+BEGIN
+	DECLARE @r_existe BIT
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE nombre			= @p_nombre
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+	ELSE
+	BEGIN
+		SET @r_existe = 0
+	END
+
+	RETURN @r_existe
+END
+GO	
+
+CREATE OR ALTER FUNCTION gestion_sede.udf_LimpiarApellidoMedico (@p_nombre VARCHAR(30)
+)
+RETURNS VARCHAR(30)
+BEGIN
+	DECLARE @retorno VARCHAR(30)
+
+	SET @retorno = SUBSTRING(@p_nombre, CHARINDEX('.', @p_nombre) + 1, LEN(@p_nombre))	
+		
+	RETURN @retorno
+END
+GO	
+
+--- AUXILIARES PARA INSERCION DE MEDICOS
+
+CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteMedico (
+	@p_nombre			VARCHAR(30),
+	@p_apellido			VARCHAR(30),
+	@p_matricula		INT,
+	@p_id_especialidad	INT
+)
+RETURNS BIT
+BEGIN
+	DECLARE @r_existe BIT
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE nombre = @p_nombre
+			AND	apellido = @p_apellido
+			AND	matricula = @p_matricula
+			AND id_especialidad = @p_id_especialidad
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+	ELSE
+	BEGIN
+		SET @r_existe = 0
+	END
+
+	RETURN @r_existe
+END
+GO	

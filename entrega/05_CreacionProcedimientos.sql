@@ -45,7 +45,8 @@ AS
 BEGIN
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
-	SET @existe = gestion_paciente.udf_ExistePaciente (
+
+	EXEC @existe = gestion_paciente.udf_ExistePaciente 
 						@p_nombre			= @p_nombre,
 						@p_apellido			= @p_apellido,
 						@p_fecha_nac		= @p_fecha_nac,
@@ -54,7 +55,7 @@ BEGIN
 						@p_sexo				= @p_sexo,
 						@p_genero			= @p_genero,
 						@p_nacionalidad		= @p_nacionalidad
-				)
+				
 
 	SET @borrado = (select borrado_logico from gestion_paciente.Paciente where id = @p_id)
 
@@ -811,28 +812,31 @@ GO
 
 CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarMedico
 	@p_id				INT, 
-	@p_nombre			VARCHAR(25)	= NULL, 
-	@p_apellido			VARCHAR(20)	= NULL,
-	@p_matricula		INT			= NULL
+	@p_nombre			VARCHAR(30)	= NULL, 
+	@p_apellido			VARCHAR(30)	= NULL,
+	@p_matricula		INT			= NULL,
+	@p_id_especialidad	INT			= NULL
 AS
 BEGIN
 	DECLARE
-		@nombre		VARCHAR(30),
-		@apellido	VARCHAR(30),
-		@matricula	INT
+		@nombre				VARCHAR(30),
+		@apellido			VARCHAR(30),
+		@matricula			INT,
+		@id_especialidad	INT
 	SELECT
-		@nombre		= nombre,
-		@apellido	= apellido,
-		@matricula	= matricula
-
+		@nombre				= nombre,
+		@apellido			= apellido,
+		@matricula			= matricula,
+		@id_especialidad	= id_especialidad
 	FROM gestion_sede.Medico
 	WHERE id = @p_id
 
 	UPDATE	gestion_sede.Medico
 	SET	
-		nombre		= ISNULL(@p_nombre, @nombre),
-		apellido	= ISNULL(@p_apellido, @apellido),
-		matricula	= ISNULL(@p_matricula, @matricula)
+		nombre			= ISNULL(@p_nombre, @nombre),
+		apellido		= ISNULL(@p_apellido, @apellido),
+		matricula		= ISNULL(@p_matricula, @matricula),
+		id_especialidad = ISNULL(@p_id_especialidad, @id_especialidad)
 	WHERE id = @p_id
 END
 GO
@@ -840,38 +844,42 @@ GO
 -- INSERTAR MEDICO
 
 CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
-	@p_id INT, 
-	@p_nombre VARCHAR(25), 
-	@p_apellido VARCHAR(20),
-	@p_matricula INT
+	@p_id				INT	= NULL, 
+	@p_nombre			VARCHAR(30), 
+	@p_apellido			VARCHAR(30),
+	@p_matricula		INT,
+	@p_id_especialidad	INT
 AS
 BEGIN
 	DECLARE @existe	BIT
-	EXEC gestion_sede.usp_ExisteMedico
-		@p_nombre		= @p_nombre,
-		@p_apellido		= @p_apellido,
-		@p_matricula	= @p_matricula,
-		@r_existe		= @existe OUTPUT
+	EXEC @existe = gestion_sede.udf_ExisteMedico
+		@p_nombre			= @p_nombre,
+		@p_apellido			= @p_apellido,
+		@p_matricula		= @p_matricula,
+		@p_id_especialidad	= @p_id_especialidad
 
 	IF @existe = 1
 	BEGIN
 		EXEC gestion_sede.usp_ActualizarMedico
-			@p_id			= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_apellido		= @p_apellido,
-			@p_matricula	= @p_matricula
+			@p_id				= @p_id,
+			@p_nombre			= @p_nombre,
+			@p_apellido			= @p_apellido,
+			@p_matricula		= @p_matricula,
+			@p_id_especialidad	= @p_id_especialidad
 	END
 	ELSE
 	BEGIN
 		INSERT INTO gestion_sede.Medico (
 			nombre,
 			apellido,
-			matricula
+			matricula,
+			id_especialidad
 		)
 		VALUES (
 			@p_nombre,
 			@p_apellido,
-			@p_matricula
+			@p_matricula,
+			@p_id_especialidad
 		)
 
 	END
@@ -892,44 +900,50 @@ GO
 -- INSERTAR DIASXSEDE
 
 CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarDiasXSede
-	@id				INT,
-	@id_sede		INT,
-	@id_medico		INT, 
-	@dia			DATE, 
-	@hora_inicio	TIME
+	@p_id					INT,
+	@p_id_sede				INT,
+	@p_id_medico			INT, 
+	@p_id_reserva_turno		INT,
+	@p_dia					DATE, 
+	@p_hora_inicio			TIME
 AS
-	IF(DATEPART(MINUTE, @hora_inicio) IN (0,15,30,45))
+	IF(DATEPART(MINUTE, @p_hora_inicio) IN (0,15,30,45))
 		INSERT INTO gestion_sede.DiasXSede(
 			id,
 			id_sede,
 			id_medico,
+			id_reserva_turno,
 			dia,
 			hora_inicio
 		)
 		VALUES (
-			@id_sede,
-			@id_medico,
-			@dia,
-			@hora_inicio
+			@p_id,
+			@p_id_sede,
+			@p_id_medico,
+			@p_id_reserva_turno,
+			@p_dia,
+			@p_hora_inicio
 		);
 GO	
 
 -- ACTUALIZAR DIASXSEDE
 
 CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarDiasXSede 
-	@p_id			INT,
-	@p_id_sede		INT		= NULL,
-	@p_id_medico	INT		= NULL, 
-	@p_dia			DATE	= NULL, 
-	@p_hora_inicio	TIME	= NULL
+	@p_id				INT,
+	@p_id_sede			INT	 = NULL,
+	@p_id_medico		INT	 = NULL,
+	@p_id_reserva_turno	INT,
+	@p_dia				DATE = NULL, 
+	@p_hora_inicio		TIME = NULL
 AS
 BEGIN
 
 	DECLARE
-		@id_sede		INT,
-		@id_medico		INT,
-		@dia			DATE,
-		@hora_inicio	TIME
+		@id_sede			INT,
+		@id_medico			INT,
+		@id_reserva_turno	INT,
+		@dia				DATE,
+		@hora_inicio		TIME
 	SELECT
 		@id_sede		= id_sede,
 		@id_medico		= id_medico,
@@ -959,12 +973,73 @@ AS
 		AND id_medico = @p_medico;		
 GO
 
+---- CREACION STORE PROCEDURES ESPECIALIDAD
+
+--- INSERTAR ESPECIALIDAD
+
+CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarEspecialidad
+	@p_id		INT			= NULL,
+	@p_nombre	VARCHAR(30)
+AS
+BEGIN
+
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE nombre = @p_nombre
+	)
+	BEGIN
+		INSERT INTO gestion_sede.Especialidad(
+			nombre
+		) 
+		VALUES (
+			@p_nombre
+		);
+	END
+
+	
+END
+GO
+
+--- ACTUALIZAR ESPECIALIDAD
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarEspecialidad
+	@p_id		INT,
+	@p_nombre	VARCHAR(30) = NULL
+AS
+BEGIN
+	DECLARE
+		@nombre         VARCHAR(30)
+
+	SELECT 
+		@nombre         = nombre
+	FROM gestion_sede.Especialidad
+	WHERE id = @p_id
+
+	UPDATE gestion_sede.Especialidad
+	SET	
+		nombre			= ISNULL(@p_nombre, @nombre)
+	WHERE id = @p_id
+END
+GO
+
+--- BORRAR ESPECIALIDAD
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarEspecialidad
+	@p_id		INT
+AS
+BEGIN
+	DELETE gestion_sede.Especialidad
+	WHERE id = @p_id
+END
+GO
+
 ---- CREACION STORE PROCEDURES GESTION TURNO
 
 --- CREACION STORE PROCEDURES ESTADO TURNO
 
 -- INSERTAR ESTADO TURNO
-CREATE OR ALTER PROCEDURE gestion_turno.InsertarEstadoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarEstadoTurno
 	@p_id		INT,
 	@p_nombre	VARCHAR(11)
 AS
@@ -975,8 +1050,28 @@ GO
 
 -- ACTUALIZAR ESTADO TURNO
 
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarEstadoTurno
+	@p_id		INT,
+	@p_nombre	VARCHAR(11) = NULL
+AS
+BEGIN
+	DECLARE
+		@nombre         VARCHAR(11)
+
+	SELECT 
+		@nombre         = nombre
+	FROM gestion_turno.EstadoTurno
+	WHERE id = @p_id
+
+	UPDATE gestion_turno.EstadoTurno
+	SET	
+		nombre			= ISNULL(@p_nombre, @nombre)
+	WHERE id = @p_id
+END
+GO
+
 -- BORRAR ESTADO
-CREATE OR ALTER PROCEDURE gestion_turno.BorrarEstadoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarEstadoTurno
 	@p_id		INT
 AS
 BEGIN
@@ -989,13 +1084,13 @@ GO
 
 -- ACTUALIZAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.ActualizarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarTipoTurno
     @p_id           INT,
-    @p_nombre       VARCHAR(30) = NULL
+    @p_nombre       VARCHAR(11) = NULL
 AS
 BEGIN
 	DECLARE
-		@nombre         VARCHAR(30)
+		@nombre         VARCHAR(11)
 
 	SELECT 
 		@nombre         = nombre
@@ -1012,7 +1107,7 @@ GO
 
 -- INSERTAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.InsertarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarTipoTurno
 	@p_id		INT,
 	@p_nombre	VARCHAR(20)
 AS
@@ -1023,7 +1118,7 @@ GO
 
 -- BORRAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.EliminarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_EliminarTipoTurno
 	@p_id		INT
 AS
 BEGIN
@@ -1035,82 +1130,13 @@ GO
 
 --- CREACION STORE PROCEDURES RESERVA TURNO
 
--- INSERTAR RESERVA DE TURNO
-
-CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
-	@p_id						INT,
-	@p_fecha					DATE,
-	@p_hora						TIME,
-	@p_id_paciente				INT,
-	@p_id_medico				INT,
-	@p_id_especialidad			INT,
-	@p_id_sede_atencion			INT,-- gestion_sede.Sede.direccion
-	@p_id_tipo_turno			INT
-AS
-BEGIN
-	DECLARE @disponiblidad	INT
-	DECLARE @id_estado		INT
-	/*
-
-		con la disponiblidad, si es 1 entonces busco cual es el id en la tabla estado, del estado disponible
-		y lo seteo a @id_estado
-		
-	*/
-	EXEC gestion_turno.udf_ConsultarDisponibilidad
-			@p_id_medico = @p_id_medico,
-			@p_id_especialidad = @p_id_especialidad,
-			@p_id_sede_atencion = @p_id_sede_atencion,
-			@r_disponibilidad	= @disponiblidad	OUTPUT
-			
-	IF @disponiblidad = 1
-	BEGIN
-		-- aca buscar el id del estado "disponible" y asignarlo a @id_estado
-	END
-	INSERT INTO gestion_turno.ReservaTurno(
-		id,
-		fecha,
-		hora,
-		id_paciente,
-		id_medico,
-		id_especialidad,
-		id_estado_turno,
-		id_tipo_turno
-	)		
-	VALUES (
-		@p_id,
-		@p_fecha,
-		@p_hora,
-		@p_id_paciente,
-		@p_id_medico,
-		@p_id_especialidad,
-		@id_estado,
-		@p_id_tipo_turno
-	)
-END
-GO
-
--- BORRAR RESERVA DE TURNO
-
-CREATE OR ALTER PROCEDURE gestion_turno.BorrarTurno
-	@p_id	INT
-AS
-BEGIN
-	UPDATE gestion_turno.ReservaTurno
-	SET borrado_logico = 1
-	WHERE id = @p_id
-END
-GO
-
 -- ACTUALIZAR RESERVA DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarReservaTurno
     @p_id						INT,
     @p_fecha					DATE	= NULL,
 	@p_hora						TIME	= NULL,
 	@p_id_paciente				INT		= NULL,
-	@p_id_medico				INT		= NULL,
-	@p_id_especialidad			INT		= NULL,
-	@p_id_direccion_atencion	INT		= NULL,
 	@p_id_estado_turno			INT		= NULL,
 	@p_id_tipo_turno			INT		= NULL,
 	@p_borrado_logico			BIT		= NULL
@@ -1120,9 +1146,6 @@ BEGIN
 		@fecha					DATE,
 		@hora					TIME,
 		@id_paciente			INT,
-		@id_medico				INT,
-		@id_especialidad		INT,
-		@id_direccion_atencion	INT,
 		@id_estado_turno		INT,
 		@id_tipo_turno			INT,
 		@borrado_logico			BIT
@@ -1131,9 +1154,6 @@ BEGIN
 		@fecha					= fecha,
 		@hora					= hora,
 		@id_paciente			= id_paciente,
-		@id_medico				= id_medico,
-		@id_especialidad		= id_especialidad,
-		@id_direccion_atencion	= id_direccion_atencion,
 		@id_estado_turno		= id_estado_turno,
 		@id_tipo_turno			= id_tipo_turno,
 		@borrado_logico			= borrado_logico
@@ -1145,9 +1165,6 @@ BEGIN
 		fecha					= ISNULL(@p_fecha, @fecha),
 		hora					= ISNULL(@p_hora, @hora),
 		id_paciente				= ISNULL(@p_id_paciente, @id_paciente),
-		id_medico				= ISNULL(@p_id_medico, @id_medico),
-		id_especialidad			= ISNULL(@p_id_especialidad, @id_especialidad),
-		id_direccion_atencion	= ISNULL(@p_id_direccion_atencion, @id_direccion_atencion),
 		id_estado_turno			= ISNULL(@p_id_estado_turno, @id_estado_turno),
 		id_tipo_turno			= ISNULL(@p_id_tipo_turno, @id_tipo_turno),
 		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico)
@@ -1155,3 +1172,83 @@ BEGIN
 
 END;
 GO
+
+-- INSERTAR RESERVA DE TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarReservaTurno
+	@p_id						INT,
+	@p_fecha					DATE,
+	@p_hora						TIME,
+	@p_id_paciente				INT,
+	@p_id_medico				INT	= NULL,
+	@p_id_especialidad			INT	= NULL,
+	@p_id_sede_atencion			INT	= NULL,-- gestion_sede.Sede.direccion
+	@p_id_tipo_turno			INT
+AS
+BEGIN
+	DECLARE @disponiblidad	INT
+	DECLARE @id_estado		INT
+	DECLARE @existe			BIT
+	
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		EXEC gestion_turno.usp_ActualizarReservaTurno
+				@p_id				= @p_id,
+				@p_borrado_logico	= 1
+	END
+	ELSE
+	BEGIN
+		/*
+			Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
+			especialidad y la sede.
+		*/
+		EXEC gestion_turno.usp_ConsultarDisponibilidad
+				@p_id_medico		= @p_id_medico,
+				@p_id_especialidad	= @p_id_especialidad,
+				@p_id_sede_atencion = @p_id_sede_atencion,
+				@r_disponiblidad	= @disponiblidad	OUTPUT
+
+		IF @disponiblidad = 1
+		BEGIN
+			SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+		END
+		ELSE
+		BEGIN
+			SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Pendiente')
+		END
+		INSERT INTO gestion_turno.ReservaTurno(
+			id,
+			fecha,
+			hora,
+			id_paciente,
+			id_estado_turno,
+			id_tipo_turno
+		)		
+		VALUES (
+			@p_id,
+			@p_fecha,
+			@p_hora,
+			@p_id_paciente,
+			@id_estado,
+			@p_id_tipo_turno
+		)
+	END
+END
+GO
+
+-- BORRAR RESERVA DE TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarTurno
+	@p_id	INT
+AS
+BEGIN
+	UPDATE gestion_turno.ReservaTurno
+	SET borrado_logico = 1
+	WHERE id = @p_id
+END
+GO
+

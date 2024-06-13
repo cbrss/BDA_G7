@@ -128,7 +128,7 @@ BEGIN
     CREATE TABLE gestion_paciente.Domicilio
 	(
 		id					INT IDENTITY(1,1),
-		id_paciente			INT,
+		id_paciente			INT	UNIQUE,
 		calle				VARCHAR(30),
 		numero				INT,
 		piso				INT,
@@ -167,7 +167,7 @@ BEGIN
     CREATE TABLE gestion_paciente.Cobertura
 	(
 		id					INT,
-		id_paciente			INT,
+		id_paciente			INT	UNIQUE,
 		imagen_credencial	VARCHAR(max),
 		nro_socio			INT,
 		fecha_registro		DATE,
@@ -196,7 +196,7 @@ BEGIN
     CREATE TABLE gestion_paciente.Prestador
 	(
 		id					INT IDENTITY (1,1),
-		id_cobertura		INT,
+		id_cobertura		INT	UNIQUE,
 		nombre				VARCHAR(30),
 		[plan]				VARCHAR(30),
 
@@ -206,101 +206,6 @@ BEGIN
 		CONSTRAINT PK_PrestadorID PRIMARY KEY (id),
 		CONSTRAINT FK_Prestador_CoberturaID FOREIGN KEY (id_cobertura) REFERENCES gestion_paciente.Cobertura(id)
 	);
-END;
-GO
-
-
-
---- CREACION DE TABLAS DEL ESQUEMA GESTION_SEDE
-
--- CREACION TABLA SEDE
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Sede'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Sede (
-		 id					INT IDENTITY(1,1),
-		 nombre				VARCHAR(30),
-		 direccion			VARCHAR(30),
-		 localidad			VARCHAR(30),
-		 provincia			VARCHAR(30),
-
-		/*CONSTRAINT CK_Sedeid CHECK(ISNUMERIC(id) = 1), 
-		CONSTRAINT Ck_Sedenomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_Sedeprov CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),*/
-		CONSTRAINT PK_SedeID PRIMARY KEY (id)
-	 )
-END
-GO
-
--- CREACION TABLA MEDICO
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Medico'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Medico(
-		 id				INT IDENTITY(1,1),
-		 nombre			VARCHAR(25),
-		 apellido		VARCHAR(20),
-		 matricula		INT UNIQUE,
-
-		/*CONSTRAINT CK_Medicid CHECK(ISNUMERIC(id) = 1),
-		CONSTRAINT Ck_Medicnomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_Medicapell CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
-		CONSTRAINT CK_Medicmatricula CHECK(ISNUMERIC(matricula) = 1),*/
-		CONSTRAINT PK_MedicoID PRIMARY KEY (id)
-	 );
-END;
-GO
-
--- CREACION TABLA DIASXSEDE
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'DiasXSede'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.DiasXSede (
-		 id					INT,
-		 id_sede			INT,
-		 id_medico			INT,
-		 dia				DATE,
-		 hora_inicio		TIME,
-
-	 CONSTRAINT PK_DiasxsedeID	PRIMARY KEY (id),
-	 CONSTRAINT FK_SedeID		FOREIGN KEY (id_sede)	REFERENCES gestion_sede.Sede(id),
-	 CONSTRAINT FK_MedicoID		FOREIGN KEY (id_medico) REFERENCES gestion_sede.Medico(id)
-	 );
-END;
-GO
-
--- CREACION TABLA ESPECIALIDAD
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.tables
-    WHERE name = 'Especialidad'
-    AND schema_id = SCHEMA_ID('gestion_sede')
-)
-BEGIN
-	 CREATE TABLE gestion_sede.Especialidad(
-		id			INT,
-		nombre		VARCHAR(20),
-
-		CONSTRAINT CK_Espid CHECK(ISNUMERIC(id) = 1),
-		CONSTRAINT Ck_Espnomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
-	 );
 END;
 GO
 
@@ -357,19 +262,133 @@ BEGIN
 		fecha					DATE,
 		hora					TIME,
 		id_paciente				INT,
-		id_medico				INT,
-		id_especialidad			INT,
-		id_sede_atencion		INT,
 		id_estado_turno			INT,
 		id_tipo_turno			INT,
 		borrado_logico			BIT DEFAULT 0,
 
 		CONSTRAINT PK_turnoID			PRIMARY KEY(id),
 		CONSTRAINT FK_pacienteID		FOREIGN KEY(id_paciente)		REFERENCES gestion_paciente.Paciente(id),
-		CONSTRAINT FK_medicoID			FOREIGN KEY(id_medico)			REFERENCES gestion_sede.Medico(id),
-		CONSTRAINT FK_especialidadID	FOREIGN KEY(id_especialidad)	REFERENCES gestion_sede.Especialidad(id),
 		CONSTRAINT FK_estadoID			FOREIGN KEY(id_estado_turno)	REFERENCES gestion_turno.EstadoTurno(id),
 		CONSTRAINT FK_tipoID			FOREIGN KEY(id_tipo_turno)		REFERENCES gestion_turno.TipoTurno(id)		
 	)
 END
 GO
+
+
+
+
+
+--- CREACION DE TABLAS DEL ESQUEMA GESTION_SEDE
+
+-- CREACION TABLA SEDE
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Sede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Sede (
+		 id					INT IDENTITY(1,1),
+		 nombre				VARCHAR(30),
+		 direccion			VARCHAR(30),
+		 localidad			VARCHAR(30),
+		 provincia			VARCHAR(30),
+
+		/*CONSTRAINT CK_Sedeid CHECK(ISNUMERIC(id) = 1), 
+		CONSTRAINT Ck_Sedenomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_Sedeprov CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),*/
+		CONSTRAINT PK_SedeID PRIMARY KEY (id)
+	 )
+END
+GO
+
+-- CREACION TABLA ESPECIALIDAD
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Especialidad'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Especialidad(
+		id			INT	IDENTITY(1,1),
+		nombre		VARCHAR(30),
+
+		/*CONSTRAINT CK_Espid CHECK(ISNUMERIC(id) = 1),
+		CONSTRAINT Ck_Espnomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),*/
+		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
+	 );
+END;
+GO
+
+
+-- CREACION TABLA MEDICO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Medico'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.Medico(
+		id					INT IDENTITY(1,1),
+		nombre				VARCHAR(30),
+		apellido			VARCHAR(30),
+		matricula			INT UNIQUE,
+		id_especialidad		INT,
+
+		CONSTRAINT PK_MedicoID			PRIMARY KEY (id),
+		CONSTRAINT FK_EspecialidadID	FOREIGN KEY (id_especialidad) REFERENCES gestion_sede.Especialidad(id)
+	 );
+END;
+GO
+
+-- CREACION TABLA DIASXSEDE
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'DiasXSede'
+    AND schema_id = SCHEMA_ID('gestion_sede')
+)
+BEGIN
+	 CREATE TABLE gestion_sede.DiasXSede (
+		 id					INT,
+		 id_sede			INT,
+		 id_medico			INT,
+		 id_reserva_turno	INT UNIQUE,
+		 dia				DATE,
+		 hora_inicio		TIME,
+
+	 CONSTRAINT PK_DiasxsedeID		PRIMARY KEY (id),
+	 CONSTRAINT FK_SedeID			FOREIGN KEY (id_sede)			REFERENCES gestion_sede.Sede (id),
+	 CONSTRAINT FK_MedicoID			FOREIGN KEY (id_medico)			REFERENCES gestion_sede.Medico (id),
+	 CONSTRAINT FK_ReservaTurnoID	FOREIGN KEY (id_reserva_turno)	REFERENCES gestion_turno.ReservaTurno (id)
+	 );
+END;
+GO
+
+
+
+
+/*
+drop table gestion_paciente.Domicilio
+drop table gestion_paciente.Prestador
+drop table gestion_paciente.Cobertura
+drop table gestion_paciente.Estudio
+drop table gestion_paciente.Usuario
+drop table gestion_sede.DiasXSede
+drop table gestion_sede.Sede
+drop table gestion_sede.Medico
+drop table gestion_sede.Especialidad
+
+drop table gestion_turno.ReservaTurno
+drop table gestion_turno.TipoTurno
+drop table gestion_turno.EstadoTurno
+
+drop table gestion_paciente.Paciente
+*/
