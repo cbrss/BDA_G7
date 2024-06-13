@@ -307,6 +307,7 @@ GO
 --- CREACION STORE PROCEDURES PACIENTE
 
 -- BUSCAR PACIENTE
+/*
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ExistePaciente
 	@p_nombre				VARCHAR(30),
 	@p_apellido				VARCHAR(30),
@@ -335,7 +336,8 @@ BEGIN
 		SET @r_existe = 1
 	END
 END
-GO	
+GO	*/
+
 
 -- INSERTAR PACIENTE
 -- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
@@ -368,17 +370,18 @@ AS
 BEGIN
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
-	EXEC gestion_paciente.usp_ExistePaciente
-		@p_nombre			= @p_nombre,
-		@p_apellido			= @p_apellido,
-		@p_fecha_nac		= @p_fecha_nac,
-		@p_tipo_doc			= @p_tipo_doc,
-		@p_num_doc			= @p_num_doc,
-		@p_sexo				= @p_sexo,
-		@p_genero			= @p_genero,
-		@p_nacionalidad		= @p_nacionalidad,
-		@r_existe			= @existe	OUTPUT,
-		@r_borrado			= @borrado	OUTPUT
+	SET @existe = gestion_paciente.udf_ExistePaciente (
+						@p_nombre			= @p_nombre,
+						@p_apellido			= @p_apellido,
+						@p_fecha_nac		= @p_fecha_nac,
+						@p_tipo_doc			= @p_tipo_doc,
+						@p_num_doc			= @p_num_doc,
+						@p_sexo				= @p_sexo,
+						@p_genero			= @p_genero,
+						@p_nacionalidad		= @p_nacionalidad
+				)
+
+	SET @borrado = (select borrado_logico from gestion_paciente.Paciente where id = @p_id)
 
 	IF @existe = 1 AND @borrado = 1						--	CASO: el operador de la clinica reincorpora un paciente
     BEGIN
@@ -1735,7 +1738,7 @@ BEGIN
 
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
-	-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
 END
 GO
 
@@ -1752,9 +1755,9 @@ BEGIN
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
 
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
 END
 GO
 
