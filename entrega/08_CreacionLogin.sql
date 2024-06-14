@@ -10,6 +10,8 @@
 		FECHA DE ENTREGA: 14/6/2024
 */
 
+USE Com5600G07
+GO
 
 --- CREACION LOGINS
 EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos

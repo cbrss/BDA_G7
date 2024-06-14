@@ -11,7 +11,8 @@
 */
 
 
-
+USE Com5600G07
+GO
 
 ---- CREACION FUNCIONES AUXILIARES PARA LOS STORE PROCEDURES
 
@@ -152,7 +153,7 @@ GO
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
 
-CREATE OR ALTER FUNCTION gestion_paciente.fn_ParsearDomicilio (@p_domicilio VARCHAR(50))
+CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
 	numero		VARCHAR(30)

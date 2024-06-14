@@ -10,8 +10,10 @@
 		FECHA DE ENTREGA: 14/6/2024
 */
 
---- FUNCIONES Y PROCEDIMIENTOS PARA LOS ITEMS DEL ENUNCIADO
+USE Com5600G07
+GO
 
+--- FUNCIONES Y PROCEDIMIENTOS PARA LOS ITEMS DEL ENUNCIADO
 
 /*
 Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 

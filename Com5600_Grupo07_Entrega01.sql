@@ -23,6 +23,8 @@ BEGIN
 END
 go
 
+USE Com5600G07
+GO
 ---- CREACION ESQUEMAS
 
 
@@ -543,7 +545,7 @@ GO
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
 
-CREATE OR ALTER FUNCTION gestion_paciente.fn_ParsearDomicilio (@p_domicilio VARCHAR(50))
+CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
 	numero		VARCHAR(30)
@@ -1880,7 +1882,7 @@ GO
 
 -- BORRAR RESERVA DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarTurno
+CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarReservaTurno
 	@p_id	INT
 AS
 BEGIN
@@ -2347,19 +2349,6 @@ EXEC gestion_sede.usp_ImportarMedico
 */
 
 
-/*
-		BASE DE DATOS APLICADA
-		GRUPO: 07
-		COMISION: 5600
-		INTEGRANTES:
-			Cristian Raul Berrios Lima		42875289
-			Lautaro Da silva				42816815
-			Abigail Karina Peñafiel Huayta	41913506
-
-		FECHA DE ENTREGA: 14/6/2024
-*/
-
-
 --- CREACION LOGINS
 EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos
 
@@ -2413,7 +2402,7 @@ BEGIN
 	CREATE LOGIN clinica_importador WITH PASSWORD = 'pepe123'
 END
 
-REVERT	-- para quitar el seteo de usuario DBO
+REVERT	-- para quitar el seteo de usuario sa
 GO
 
 --- CREACION USUARIOS
@@ -2445,7 +2434,7 @@ BEGIN
 
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno		TO db_desarrollador
 END
 GO
 
@@ -2462,9 +2451,9 @@ BEGIN
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
 
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_InsertarReservaTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_ActualizarReservaTurno	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_BorrarReservaTurno		TO clinica_operador
 END
 GO
 
@@ -2496,5 +2485,5 @@ BEGIN
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO clinica_importador
 END
 GO
-REVERT	-- para quitar el seteo de usuario DBO
+REVERT	-- para quitar el seteo de usuario sa
 GO

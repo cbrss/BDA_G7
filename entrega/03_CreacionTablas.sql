@@ -9,7 +9,8 @@
 
 		FECHA DE ENTREGA: 14/6/2024
 */
-
+USE Com5600G07
+GO
 
 --- CREACION DE TABLAS DEL ESQUEMA GESTION_PACIENTE
 
@@ -44,13 +45,13 @@ BEGIN
 		usr_actualizacion	VARCHAR(20),
 		borrado_logico		BIT DEFAULT 0,
 
-		/*CONSTRAINT Ck_PacientNomb		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_PacientApell		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
-		CONSTRAINT Ck_PacientApellMat	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0),
-		CONSTRAINT Ck_PacientTipoDoc	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
-		CONSTRAINT Ck_PacientSexo		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
-		CONSTRAINT Ck_PacientGenero		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
-		CONSTRAINT Ck_PacientNacion		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),*/
+		/*CONSTRAINT Ck_PacienteNombre		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_PacienteApellido		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
+		CONSTRAINT Ck_PacienteApellidoMaterno	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0),
+		CONSTRAINT Ck_PacienteTipoDoc	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
+		CONSTRAINT Ck_PacienteSexo		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
+		CONSTRAINT Ck_PacienteGenero		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
+		CONSTRAINT Ck_PacienteNacion		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),*/
 		CONSTRAINT PK_PacienteID PRIMARY KEY (id)
 	);
 END;
@@ -129,10 +130,10 @@ BEGIN
 		localidad			VARCHAR(30),
 		/*
 		
-		CONSTRAINT Ck_DomicCalle CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', calle) = 0),
-		CONSTRAINT Ck_DomicPais CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
-		CONSTRAINT Ck_DomicProv CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
-		CONSTRAINT Ck_DomicLocalidad CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', localidad) = 0),*/
+		CONSTRAINT Ck_DomicilioCalle CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', calle) = 0),
+		CONSTRAINT Ck_DomicilioPais CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
+		CONSTRAINT Ck_DomicilioProvincia CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
+		CONSTRAINT Ck_DomicilioLocalidad CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', localidad) = 0),*/
 		CONSTRAINT PK_DomicilioID PRIMARY KEY (id),
 		CONSTRAINT FK_Domicilio_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -181,7 +182,7 @@ BEGIN
 		[plan]				VARCHAR(30),
 
 		/*
-		CONSTRAINT Ck_Prestanomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),*/
+		CONSTRAINT Ck_PrestadorNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),*/
 		CONSTRAINT PK_PrestadorID PRIMARY KEY (id),
 		CONSTRAINT FK_Prestador_CoberturaID FOREIGN KEY (id_cobertura) REFERENCES gestion_paciente.Cobertura(id)
 	);
@@ -279,8 +280,8 @@ BEGIN
 		 provincia			VARCHAR(30),
 
 		/*
-		CONSTRAINT Ck_Sedenomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_Sedeprov CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),*/
+		CONSTRAINT Ck_SedeNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_SedeProvincia CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),*/
 		CONSTRAINT PK_SedeID PRIMARY KEY (id)
 	 )
 END
@@ -300,7 +301,7 @@ BEGIN
 		nombre		VARCHAR(30),
 
 		/*
-		CONSTRAINT Ck_Espnombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),*/
+		CONSTRAINT Ck_EspecialidadNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),*/
 		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
 	 );
 END;

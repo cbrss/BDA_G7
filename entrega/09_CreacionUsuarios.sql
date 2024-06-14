@@ -40,7 +40,7 @@ BEGIN
 
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno		TO db_desarrollador
 END
 GO
 
@@ -57,9 +57,9 @@ BEGIN
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
 
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_InsertarReservaTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_ActualizarReservaTurno	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.usp_BorrarReservaTurno		TO clinica_operador
 END
 GO
 
