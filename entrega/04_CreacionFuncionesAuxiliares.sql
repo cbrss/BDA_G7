@@ -80,6 +80,71 @@ END;
 GO
 
 
+/*
+Adicionalmente se requiere que el sistema sea capaz de generar un archivo XML detallando 
+los turnos atendidos para informar a la Obra Social. El mismo debe constar de los datos del 
+paciente (Apellido, nombre, DNI), nombre y matrícula del profesional que lo atendió, fecha, 
+hora, especialidad. Los parámetros de entrada son el nombre de la obra social y un intervalo 
+de fechas. 
+*/
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_ExportarTurnos
+	@p_obra_social		VARCHAR(30),
+	@p_fecha_inicial	DATE,
+	@p_fecha_final		DATE
+AS
+BEGIN
+	DECLARE @id_estado	INT
+	SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Atendido')
+
+	SELECT P.nombre, 
+			P.apellido, 
+			P.num_doc,
+			M.nombre,
+			M.matricula,
+			DXS.dia,
+			DXS.hora_inicio,
+			E.nombre
+	FROM gestion_paciente.Paciente		P
+		JOIN gestion_turno.ReservaTurno RT	ON RT.id_paciente = P.id
+		JOIN gestion_sede.DiasXSede		DXS	ON DXS.id_reserva_turno = RT.id 
+		JOIN gestion_sede.Medico		M	ON M.id = DXS.id_medico 
+		JOIN gestion_sede.Especialidad	E	ON E.id = M.id_especialidad
+		JOIN gestion_paciente.Cobertura C	ON C.id_paciente = P.id
+		JOIN gestion_paciente.Prestador Pre	ON Pre.id_cobertura = C.id
+
+	WHERE Pre.nombre = @p_obra_social
+		AND	DXS.dia >= @p_fecha_inicial
+		AND	DXS.dia <= @p_fecha_final
+		AND RT.id_estado_turno = @id_estado
+	FOR XML RAW ('Turno'), ROOT('TurnosAtendidos');
+END
+GO
+
+/*
+Los prestadores están conformador por Obras Sociales y Prepagas con las cuales se establece una 
+alianza comercial.  Dicha alianza puede finalizar en cualquier momento, por lo cual debe poder ser 
+actualizable de forma inmediata si el contrato no está vigente.  En caso de no estar vigente el contrato, 
+deben ser anulados todos los turnos de pacientes que se encuentren vinculados a esa prestadora y 
+pasar a estado disponible. 
+*/
+
+CREATE OR ALTER PROCEDURE gestion_turno.usp_AnularTurnos
+	@p_id_prestador	INT
+AS
+BEGIN
+	UPDATE gestion_turno.ReservaTurno
+	SET id_estado_turno = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+	FROM gestion_turno.ReservaTurno RT
+		JOIN gestion_paciente.Paciente	P	ON P.id = RT.id_paciente
+		JOIN gestion_paciente.Cobertura C	ON C.id_paciente = P.id
+		JOIN gestion_paciente.Prestador Pre ON Pre.id_cobertura = C.id
+	WHERE Pre.id = @p_id_prestador
+
+END
+GO
+
+
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
 
