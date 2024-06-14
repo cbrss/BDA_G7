@@ -1,5 +1,0 @@
-id,nombre,direccion,localidad,provincia
-3e,Lucrecia,Av. 9 de julio 435,Merlo,Santa Fe	---letra en el id
-36,Lucr3ci4,Av. 9 de julio 435,Merlo,Santa Fe	---numeros en el nombre
-56,Lucrecia,Av. 9 de julio 435,Merlo,Santa 3	---numero en la provincia
-

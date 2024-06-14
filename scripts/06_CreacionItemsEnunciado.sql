@@ -22,7 +22,7 @@ del estudio, el dni del paciente y el plan; el sistema de la prestadora informa 
 el importe a facturarle al paciente. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_AutorizarEstudio
+CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
 	@p_id_estudio		VARCHAR(30),
 	@p_dni_paciente		INT,
 	@p_plan_prestador	VARCHAR(30),	
@@ -89,7 +89,7 @@ hora, especialidad. Los parámetros de entrada son el nombre de la obra social y
 de fechas. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ExportarTurnos
+CREATE OR ALTER PROCEDURE gestion_turno.ExportarTurnos
 	@p_obra_social		VARCHAR(30),
 	@p_fecha_inicial	DATE,
 	@p_fecha_final		DATE
@@ -130,7 +130,7 @@ deben ser anulados todos los turnos de pacientes que se encuentren vinculados a 
 pasar a estado disponible. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_AnularTurnos
+CREATE OR ALTER PROCEDURE gestion_turno.AnularTurnos
 	@p_id_prestador	INT
 AS
 BEGIN

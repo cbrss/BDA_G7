@@ -1,4 +1,0 @@
-id,nombre
-2A,Presencial		---letra en el id
-35,V1rtu4l		---numero en el nombre
-76,dadsvgeb		---nombre no admitido

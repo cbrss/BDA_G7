@@ -18,7 +18,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ConsultarDisponibilidad (
+CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 	@p_id_medico			INT, 
 	@p_id_especialidad		INT,
 	@p_id_sede_atencion		INT,
@@ -32,7 +32,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE PACIENTES
 
-CREATE OR ALTER FUNCTION gestion_paciente.udf_ExistePaciente(
+CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
 	@p_nombre				VARCHAR(30),
 	@p_apellido				VARCHAR(30),
 	@p_fecha_nac			DATE,
@@ -69,7 +69,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE MEDICOS
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteMedico (
+CREATE OR ALTER FUNCTION gestion_sede.ExisteMedico (
 	@p_nombre			VARCHAR(30),
 	@p_apellido			VARCHAR(30),
 	@p_matricula		INT,
@@ -98,7 +98,7 @@ BEGIN
 END
 GO	
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteEspecialidad (@p_nombre VARCHAR(20)
+CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(20)
 )
 RETURNS BIT
 BEGIN
@@ -122,7 +122,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE SEDES
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteSede (
+CREATE OR ALTER FUNCTION gestion_sede.ExisteSede (
 	@p_nombre			VARCHAR(30),
 	@p_direccion		VARCHAR(30),
 	@p_localidad		VARCHAR(30),
@@ -153,7 +153,7 @@ GO
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
 
-CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
+CREATE OR ALTER FUNCTION gestion_paciente.ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
 	numero		VARCHAR(30)
@@ -210,7 +210,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION gestion_paciente.udf_LimpiarApellidoMaterno (@p_apellido	VARCHAR(30))
+CREATE OR ALTER FUNCTION gestion_paciente.LimpiarApellidoMaterno (@p_apellido	VARCHAR(30))
 RETURNS VARCHAR(30)
 BEGIN 
 	DECLARE @apellido_materno	VARCHAR(30)
@@ -237,7 +237,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_LimpiarApellidoMedico (@p_nombre VARCHAR(30)
+CREATE OR ALTER FUNCTION gestion_sede.LimpiarApellidoMedico (@p_nombre VARCHAR(30)
 )
 RETURNS VARCHAR(30)
 BEGIN

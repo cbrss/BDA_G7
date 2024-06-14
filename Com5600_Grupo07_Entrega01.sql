@@ -404,7 +404,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ConsultarDisponibilidad (
+CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 	@p_id_medico			INT, 
 	@p_id_especialidad		INT,
 	@p_id_sede_atencion		INT,
@@ -418,7 +418,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE PACIENTES
 
-CREATE OR ALTER FUNCTION gestion_paciente.udf_ExistePaciente(
+CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
 	@p_nombre				VARCHAR(30),
 	@p_apellido				VARCHAR(30),
 	@p_fecha_nac			DATE,
@@ -455,7 +455,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE MEDICOS
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteMedico (
+CREATE OR ALTER FUNCTION gestion_sede.ExisteMedico (
 	@p_nombre			VARCHAR(30),
 	@p_apellido			VARCHAR(30),
 	@p_matricula		INT,
@@ -484,7 +484,7 @@ BEGIN
 END
 GO	
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteEspecialidad (@p_nombre VARCHAR(20)
+CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(20)
 )
 RETURNS BIT
 BEGIN
@@ -508,7 +508,7 @@ GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE SEDES
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteSede (
+CREATE OR ALTER FUNCTION gestion_sede.ExisteSede (
 	@p_nombre			VARCHAR(30),
 	@p_direccion		VARCHAR(30),
 	@p_localidad		VARCHAR(30),
@@ -539,7 +539,7 @@ GO
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
 
-CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
+CREATE OR ALTER FUNCTION gestion_paciente.ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
 	numero		VARCHAR(30)
@@ -596,7 +596,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION gestion_paciente.udf_LimpiarApellidoMaterno (@p_apellido	VARCHAR(30))
+CREATE OR ALTER FUNCTION gestion_paciente.LimpiarApellidoMaterno (@p_apellido	VARCHAR(30))
 RETURNS VARCHAR(30)
 BEGIN 
 	DECLARE @apellido_materno	VARCHAR(30)
@@ -623,7 +623,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER FUNCTION gestion_sede.udf_LimpiarApellidoMedico (@p_nombre VARCHAR(30)
+CREATE OR ALTER FUNCTION gestion_sede.LimpiarApellidoMedico (@p_nombre VARCHAR(30)
 )
 RETURNS VARCHAR(30)
 BEGIN
@@ -642,7 +642,7 @@ GO
 
 -- ACTUALIZAR PACIENTE
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarPaciente
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPaciente
     @p_id                   INT,
     @p_nombre               VARCHAR(30) = NULL,
     @p_apellido             VARCHAR(30) = NULL,
@@ -731,7 +731,7 @@ GO
 
 -- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPaciente
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id					INT				= NULL,
 	@p_nombre				VARCHAR(30),
 	@p_apellido				VARCHAR(30),
@@ -753,7 +753,7 @@ BEGIN
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
 
-	EXEC @existe = gestion_paciente.udf_ExistePaciente 
+	EXEC @existe = gestion_paciente.ExistePaciente 
 						@p_nombre			= @p_nombre,
 						@p_apellido			= @p_apellido,
 						@p_fecha_nac		= @p_fecha_nac,
@@ -768,7 +768,7 @@ BEGIN
 
 	IF @existe = 1 AND @borrado = 1						--	CASO: el operador de la clinica reincorpora un paciente
     BEGIN
-		EXEC gestion_paciente.usp_ActualizarPaciente
+		EXEC gestion_paciente.ActualizarPaciente
 				@p_id					= @p_id,
 				@p_nombre				= @p_nombre,
 				@p_apellido				= @p_apellido,
@@ -837,7 +837,7 @@ GO
 -- BORRAR PACIENTE
 
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarPaciente
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPaciente
 	@p_id INT
 AS
 BEGIN
@@ -857,7 +857,7 @@ GO
 -- INSERTAR ESTUDIO
 
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarEstudio
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarEstudio
 	@p_id				INT,
 	@p_id_paciente		INT,
 	@p_fecha			DATE,
@@ -901,7 +901,7 @@ GO
 
 -- ACTUALIZAR ESTUDIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarEstudio
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarEstudio
     @p_id                   INT,
     @p_id_paciente          INT,
     @p_fecha                DATE			= NULL,
@@ -936,7 +936,7 @@ GO
 
 -- BORRAR ESTUDIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarEstudio
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarEstudio
 	@p_id INT
 AS
 BEGIN
@@ -951,7 +951,7 @@ GO
 
 -- INSERTAR USUARIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarUsuario
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarUsuario
 	@p_id				INT,
 	@p_id_paciente		INT,
 	@p_contrasena		VARCHAR(30)
@@ -978,7 +978,7 @@ GO
 
 -- ACTUALIZAR USUARIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarUsuario
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarUsuario
     @p_id				INT,
     @p_id_paciente		INT				= NULL,
     @p_contrasena		VARCHAR(30)		= NULL,
@@ -1011,7 +1011,7 @@ GO
 -- BORRAR USUARIO
 
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarUsuario
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarUsuario
 	@p_id INT
 AS
 BEGIN
@@ -1026,7 +1026,7 @@ GO
 
 -- INSERTAR DOMICILIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarDomicilio
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarDomicilio
     @p_id INT				=	NULL,
     @p_id_paciente INT,
     @p_calle VARCHAR(30),
@@ -1066,7 +1066,7 @@ GO
 
 
 -- ACTUALIZAR DOMICILIO
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarDomicilio
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarDomicilio
     @p_id           INT,
     @p_calle        VARCHAR(30) = NULL,
     @p_numero       INT			= NULL,
@@ -1118,7 +1118,7 @@ GO
 
 -- BORRAR DOMICILIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarDomicilio
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarDomicilio
 	@p_id INT
 AS
 BEGIN
@@ -1133,7 +1133,7 @@ GO
 
 -- INSERTAR COBERTURA
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarCobertura
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarCobertura
     @p_id					INT,
     @p_id_paciente			INT,
     @p_imagen_credencial	VARCHAR(max),
@@ -1161,7 +1161,7 @@ END;
 
  -- ACTUALIZAR COBERTURA
 
- CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarCobertura
+ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarCobertura
     @p_id                   INT,
     @p_id_paciente          INT				= NULL,
     @p_imagen_credencial    VARCHAR(max)	= NULL,
@@ -1196,7 +1196,7 @@ GO
 
 -- BORRAR COBERTURA
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarCobertura
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarCobertura
 	@p_id INT
 AS
 BEGIN
@@ -1210,7 +1210,7 @@ GO
 
 -- INSERTAR PRESTADOR
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPrestador
+CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPrestador
     @p_id_cobertura		INT	= NULL,
     @p_nombre			VARCHAR(30),
     @p_plan				VARCHAR(30)
@@ -1254,7 +1254,7 @@ GO
 
 -- ACTUALIZAR PRESTADOR
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarPrestador
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPrestador
     @p_id				INT,
     @p_id_cobertura		INT				= NULL,
     @p_nombre			VARCHAR(30)		= NULL,
@@ -1285,7 +1285,7 @@ GO
 -- BORRAR PRESTADOR
 
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_BorrarPrestador
+CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPrestador
 	@p_id INT
 AS
 BEGIN
@@ -1301,7 +1301,7 @@ GO
 
 -- BUSCAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteSede
+CREATE OR ALTER PROCEDURE gestion_sede.ExisteSede
 	@p_nombre		VARCHAR(30),
 	@p_direccion	VARCHAR(30),
 	@p_localidad	VARCHAR(30),
@@ -1327,7 +1327,7 @@ GO
 
 -- ACTUALIZAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarSede
+CREATE OR ALTER PROCEDURE gestion_sede.ActualizarSede
 	@p_id			INT,
 	@p_nombre		VARCHAR(30) = NULL,
 	@p_direccion	VARCHAR(30) = NULL,
@@ -1361,7 +1361,7 @@ GO
 
 -- INSERTAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarSede
+CREATE OR ALTER PROCEDURE gestion_sede.InsertarSede
 	@p_id			INT			= NULL,
 	@p_nombre		VARCHAR(30),
 	@p_direccion	VARCHAR(30),
@@ -1371,7 +1371,7 @@ AS
 BEGIN
 	DECLARE @existe BIT
 
-	EXEC gestion_sede.usp_ExisteSede
+	EXEC gestion_sede.ExisteSede
 		@p_nombre		= @p_nombre,
 		@p_direccion	= @p_direccion,
 		@p_localidad	= @p_localidad,
@@ -1380,7 +1380,7 @@ BEGIN
 
 	IF @existe = 1
 	BEGIN
-		EXEC gestion_sede.usp_ActualizarSede
+		EXEC gestion_sede.ActualizarSede
 			@p_id			= @p_id,
 			@p_nombre		= @p_nombre,
 			@p_direccion	= @p_direccion,
@@ -1407,7 +1407,7 @@ GO
 
 -- BORRAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarSede
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarSede
 	@p_id	INT
 AS
 BEGIN
@@ -1421,7 +1421,7 @@ GO
 
 -- BUSCAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ExisteMedico 
+CREATE OR ALTER PROCEDURE gestion_sede.ExisteMedico 
 	@p_nombre			VARCHAR(30),
 	@p_apellido			VARCHAR(30),
 	@p_matricula		INT,
@@ -1444,7 +1444,7 @@ GO
 
 -- ACTUALIZAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarMedico
+CREATE OR ALTER PROCEDURE gestion_sede.ActualizarMedico
 	@p_id				INT, 
 	@p_nombre			VARCHAR(30)	= NULL, 
 	@p_apellido			VARCHAR(30)	= NULL,
@@ -1477,7 +1477,7 @@ GO
 
 -- INSERTAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
+CREATE OR ALTER PROCEDURE gestion_sede.InsertarMedico
 	@p_id				INT	= NULL, 
 	@p_nombre			VARCHAR(30), 
 	@p_apellido			VARCHAR(30),
@@ -1486,7 +1486,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarMedico
 AS
 BEGIN
 	DECLARE @existe	BIT
-	EXEC @existe = gestion_sede.udf_ExisteMedico
+	EXEC @existe = gestion_sede.ExisteMedico
 		@p_nombre			= @p_nombre,
 		@p_apellido			= @p_apellido,
 		@p_matricula		= @p_matricula,
@@ -1494,7 +1494,7 @@ BEGIN
 
 	IF @existe = 1
 	BEGIN
-		EXEC gestion_sede.usp_ActualizarMedico
+		EXEC gestion_sede.ActualizarMedico
 			@p_id				= @p_id,
 			@p_nombre			= @p_nombre,
 			@p_apellido			= @p_apellido,
@@ -1522,7 +1522,7 @@ GO
 
 -- BORRAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarMedico
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarMedico
 	@p_id INT
 AS
 	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
@@ -1533,7 +1533,7 @@ GO
 
 -- INSERTAR DIASXSEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarDiasXSede
+CREATE OR ALTER PROCEDURE gestion_sede.InsertarDiasXSede
 	@p_id					INT,
 	@p_id_sede				INT,
 	@p_id_medico			INT, 
@@ -1562,7 +1562,7 @@ GO
 
 -- ACTUALIZAR DIASXSEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ActualizarDiasXSede 
+CREATE OR ALTER PROCEDURE gestion_sede.ActualizarDiasXSede 
 	@p_id				INT,
 	@p_id_sede			INT	 = NULL,
 	@p_id_medico		INT	 = NULL,
@@ -1598,7 +1598,7 @@ GO
 
 -- BORRAR DIASXSEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_BorrarDias
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarDias
 	@p_sede		INT,
 	@p_medico	INT
 AS
@@ -1611,7 +1611,7 @@ GO
 
 --- INSERTAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_InsertarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_sede.InsertarEspecialidad
 	@p_id		INT			= NULL,
 	@p_nombre	VARCHAR(30)
 AS
@@ -1637,7 +1637,7 @@ GO
 
 --- ACTUALIZAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEspecialidad
 	@p_id		INT,
 	@p_nombre	VARCHAR(30) = NULL
 AS
@@ -1659,7 +1659,7 @@ GO
 
 --- BORRAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_turno.BorrarEspecialidad
 	@p_id		INT
 AS
 BEGIN
@@ -1673,7 +1673,7 @@ GO
 --- CREACION STORE PROCEDURES ESTADO TURNO
 
 -- INSERTAR ESTADO TURNO
-CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarEstadoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.InsertarEstadoTurno
 	@p_id		INT,
 	@p_nombre	VARCHAR(11)
 AS
@@ -1684,7 +1684,7 @@ GO
 
 -- ACTUALIZAR ESTADO TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarEstadoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEstadoTurno
 	@p_id		INT,
 	@p_nombre	VARCHAR(11) = NULL
 AS
@@ -1705,7 +1705,7 @@ END
 GO
 
 -- BORRAR ESTADO
-CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarEstadoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.BorrarEstadoTurno
 	@p_id		INT
 AS
 BEGIN
@@ -1718,7 +1718,7 @@ GO
 
 -- ACTUALIZAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarTipoTurno
     @p_id           INT,
     @p_nombre       VARCHAR(11) = NULL
 AS
@@ -1741,7 +1741,7 @@ GO
 
 -- INSERTAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.InsertarTipoTurno
 	@p_id		INT,
 	@p_nombre	VARCHAR(20)
 AS
@@ -1752,7 +1752,7 @@ GO
 
 -- BORRAR TIPO DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_EliminarTipoTurno
+CREATE OR ALTER PROCEDURE gestion_turno.EliminarTipoTurno
 	@p_id		INT
 AS
 BEGIN
@@ -1766,7 +1766,7 @@ GO
 
 -- ACTUALIZAR RESERVA DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ActualizarReservaTurno
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
     @p_id						INT,
     @p_fecha					DATE	= NULL,
 	@p_hora						TIME	= NULL,
@@ -1809,7 +1809,7 @@ GO
 
 -- INSERTAR RESERVA DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarReservaTurno
+CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
 	@p_id						INT,
 	@p_fecha					DATE,
 	@p_hora						TIME,
@@ -1830,7 +1830,7 @@ BEGIN
 		WHERE id = @p_id
 	)
 	BEGIN
-		EXEC gestion_turno.usp_ActualizarReservaTurno
+		EXEC gestion_turno.ActualizarReservaTurno
 				@p_id				= @p_id,
 				@p_borrado_logico	= 1
 	END
@@ -1840,7 +1840,7 @@ BEGIN
 			Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
 			especialidad y la sede.
 		*/
-		EXEC gestion_turno.usp_ConsultarDisponibilidad
+		EXEC gestion_turno.ConsultarDisponibilidad
 				@p_id_medico		= @p_id_medico,
 				@p_id_especialidad	= @p_id_especialidad,
 				@p_id_sede_atencion = @p_id_sede_atencion,
@@ -1876,7 +1876,7 @@ GO
 
 -- BORRAR RESERVA DE TURNO
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_BorrarReservaTurno
+CREATE OR ALTER PROCEDURE gestion_turno.BorrarReservaTurno
 	@p_id	INT
 AS
 BEGIN
@@ -1897,7 +1897,7 @@ del estudio, el dni del paciente y el plan; el sistema de la prestadora informa 
 el importe a facturarle al paciente. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_AutorizarEstudio
+CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
 	@p_id_estudio		VARCHAR(30),
 	@p_dni_paciente		INT,
 	@p_plan_prestador	VARCHAR(30),	
@@ -1964,7 +1964,7 @@ hora, especialidad. Los parámetros de entrada son el nombre de la obra social y
 de fechas. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_ExportarTurnos
+CREATE OR ALTER PROCEDURE gestion_turno.ExportarTurnos
 	@p_obra_social		VARCHAR(30),
 	@p_fecha_inicial	DATE,
 	@p_fecha_final		DATE
@@ -2005,7 +2005,7 @@ deben ser anulados todos los turnos de pacientes que se encuentren vinculados a 
 pasar a estado disponible. 
 */
 
-CREATE OR ALTER PROCEDURE gestion_turno.usp_AnularTurnos
+CREATE OR ALTER PROCEDURE gestion_turno.AnularTurnos
 	@p_id_prestador	INT
 AS
 BEGIN
@@ -2025,7 +2025,7 @@ GO
 
 -- IMPORTAR PACIENTE
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarPacientes
+CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPacientes
 	@p_ruta				VARCHAR(max)
 AS
 BEGIN
@@ -2091,10 +2091,10 @@ BEGIN
 	BEGIN
 		SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
 		
-        SELECT @calle = calle, @numero = numero FROM gestion_paciente.tvf_ParsearDomicilio (@calle_y_nro);
-		SET @apellido_materno = gestion_paciente.udf_LimpiarApellidoMaterno (@apellido)
+        SELECT @calle = calle, @numero = numero FROM gestion_paciente.ParsearDomicilio (@calle_y_nro);
+		SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
 
-		EXEC gestion_paciente.usp_InsertarPaciente
+		EXEC gestion_paciente.InsertarPaciente
 			@p_nombre			= @nombre,
 			@p_apellido			= @apellido,
 			@p_apellido_materno = @apellido_materno,
@@ -2108,7 +2108,7 @@ BEGIN
 			@p_mail				= @mail,
 			@p_id_identity		= @id_paciente	OUTPUT
 	
-		EXEC gestion_paciente.usp_InsertarDomicilio
+		EXEC gestion_paciente.InsertarDomicilio
 			@p_id_paciente	= @id_paciente,
 			@p_calle		= @calle,
 			@p_numero		= @numero,
@@ -2131,7 +2131,7 @@ delete from gestion_paciente.Domicilio
 delete from gestion_paciente.Paciente
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
 
-EXEC gestion_paciente.usp_ImportarPacientes 
+EXEC gestion_paciente.ImportarPacientes 
 		@p_ruta = @p_ruta
 GO
 
@@ -2142,7 +2142,7 @@ SELECT * from gestion_paciente.Paciente
 
 -- IMPORTAR PRESTADOR
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarPrestadores
+CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPrestadores
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -2177,7 +2177,7 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0	
 	BEGIN
 		
-		EXEC gestion_paciente.usp_InsertarPrestador
+		EXEC gestion_paciente.InsertarPrestador
 			@p_nombre		= @nombre,
 			@p_plan			= @plan
 			
@@ -2193,14 +2193,14 @@ GO
 /*
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Prestador.csv'; 
 
-EXEC gestion_paciente.usp_ImportarPrestadores 
+EXEC gestion_paciente.ImportarPrestadores 
 		@p_ruta = @p_ruta
 GO
 */
 
 --IMPORTAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ImportarSede
+CREATE OR ALTER PROCEDURE gestion_sede.ImportarSede
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -2238,7 +2238,7 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0	
 	BEGIN
 		
-		EXEC gestion_sede.usp_InsertarSede
+		EXEC gestion_sede.InsertarSede
 			@p_nombre		= @nombre,
 			@p_direccion	= @direccion,
 			@p_localidad	= @localidad,
@@ -2256,7 +2256,7 @@ GO
 /*
 -- para testear
 
-EXEC gestion_paciente.usp_ImportarSede
+EXEC gestion_paciente.ImportarSede
 	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
 	
 */
@@ -2264,7 +2264,7 @@ EXEC gestion_paciente.usp_ImportarSede
 
 --IMPORTAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ImportarMedico
+CREATE OR ALTER PROCEDURE gestion_sede.ImportarMedico
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -2306,14 +2306,14 @@ BEGIN
 	BEGIN
 		
 
-		EXEC gestion_sede.usp_InsertarEspecialidad
+		EXEC gestion_sede.InsertarEspecialidad
 			@p_nombre = @especialidad
 
 		SELECT @id_especialidad = id FROM gestion_sede.Especialidad WHERE nombre = @especialidad
 
-		SET @apellido = gestion_sede.udf_LimpiarApellidoMedico(@apellido)
+		SET @apellido = gestion_sede.LimpiarApellidoMedico(@apellido)
 
-		EXEC gestion_sede.usp_InsertarMedico
+		EXEC gestion_sede.InsertarMedico
 			@p_nombre		= @nombre,
 			@p_apellido		= @apellido,
 			@p_matricula	= @matricula,
@@ -2330,7 +2330,7 @@ GO
 /*
 -- para testear
 
-EXEC gestion_sede.usp_ImportarMedico
+EXEC gestion_sede.ImportarMedico
 	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Medicos.csv'
 
 	select * from gestion_sede.Especialidad
@@ -2441,13 +2441,13 @@ IF NOT EXISTS (
 BEGIN
 	CREATE USER clinica_operador FOR LOGIN clinica_operador
 
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarPaciente		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.InsertarPaciente		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.ActualizarPaciente	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.BorrarPaciente		TO clinica_operador
 
-	GRANT EXECUTE ON OBJECT::gestion_turno.usp_InsertarReservaTurno		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_turno.usp_ActualizarReservaTurno	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_turno.usp_BorrarReservaTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.InsertarReservaTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.ActualizarReservaTurno	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_turno.BorrarReservaTurno		TO clinica_operador
 END
 GO
 
@@ -2475,8 +2475,8 @@ IF NOT EXISTS (
 BEGIN
 	CREATE USER clinica_importador FOR LOGIN clinica_importador
 
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPacientes			TO clinica_importador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ImportarPrestadores		TO clinica_importador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.ImportarPacientes			TO clinica_importador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.ImportarPrestadores		TO clinica_importador
 END
 GO
 REVERT	-- para quitar el seteo de usuario sa

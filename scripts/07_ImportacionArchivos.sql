@@ -18,7 +18,7 @@ GO
 
 -- IMPORTAR PACIENTE
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarPacientes
+CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPacientes
 	@p_ruta				VARCHAR(max)
 AS
 BEGIN
@@ -85,9 +85,9 @@ BEGIN
 		SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
 		
         SELECT @calle = calle, @numero = numero FROM gestion_paciente.tvf_ParsearDomicilio (@calle_y_nro);
-		SET @apellido_materno = gestion_paciente.udf_LimpiarApellidoMaterno (@apellido)
+		SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
 
-		EXEC gestion_paciente.usp_InsertarPaciente
+		EXEC gestion_paciente.InsertarPaciente
 			@p_nombre			= @nombre,
 			@p_apellido			= @apellido,
 			@p_apellido_materno = @apellido_materno,
@@ -101,7 +101,7 @@ BEGIN
 			@p_mail				= @mail,
 			@p_id_identity		= @id_paciente	OUTPUT
 	
-		EXEC gestion_paciente.usp_InsertarDomicilio
+		EXEC gestion_paciente.InsertarDomicilio
 			@p_id_paciente	= @id_paciente,
 			@p_calle		= @calle,
 			@p_numero		= @numero,
@@ -124,18 +124,18 @@ delete from gestion_paciente.Domicilio
 delete from gestion_paciente.Paciente
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
 
-EXEC gestion_paciente.usp_ImportarPacientes 
+EXEC gestion_paciente.ImportarPacientes 
 		@p_ruta = @p_ruta
 GO
 
 SELECT * from gestion_paciente.Paciente
-
+SELECT * from gestion_paciente.Domicilio
 
 */
 
 -- IMPORTAR PRESTADOR
 
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_ImportarPrestadores
+CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPrestadores
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -170,7 +170,7 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0	
 	BEGIN
 		
-		EXEC gestion_paciente.usp_InsertarPrestador
+		EXEC gestion_paciente.InsertarPrestador
 			@p_nombre		= @nombre,
 			@p_plan			= @plan
 			
@@ -186,14 +186,16 @@ GO
 /*
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Prestador.csv'; 
 
-EXEC gestion_paciente.usp_ImportarPrestadores 
+EXEC gestion_paciente.ImportarPrestadores 
 		@p_ruta = @p_ruta
 GO
+
+select * from gestion_paciente.Prestador
 */
 
 --IMPORTAR SEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ImportarSede
+CREATE OR ALTER PROCEDURE gestion_sede.ImportarSede
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -231,7 +233,7 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0	
 	BEGIN
 		
-		EXEC gestion_sede.usp_InsertarSede
+		EXEC gestion_sede.InsertarSede
 			@p_nombre		= @nombre,
 			@p_direccion	= @direccion,
 			@p_localidad	= @localidad,
@@ -249,15 +251,16 @@ GO
 /*
 -- para testear
 
-EXEC gestion_paciente.usp_ImportarSede
+EXEC gestion_sede.ImportarSede
 	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
-	
+
+select * from gestion_sede.Sede
 */
 
 
 --IMPORTAR MEDICO
 
-CREATE OR ALTER PROCEDURE gestion_sede.usp_ImportarMedico
+CREATE OR ALTER PROCEDURE gestion_sede.ImportarMedico
 	@p_ruta		VARCHAR(max)
 AS
 BEGIN
@@ -299,14 +302,14 @@ BEGIN
 	BEGIN
 		
 
-		EXEC gestion_sede.usp_InsertarEspecialidad
+		EXEC gestion_sede.InsertarEspecialidad
 			@p_nombre = @especialidad
 
 		SELECT @id_especialidad = id FROM gestion_sede.Especialidad WHERE nombre = @especialidad
 
-		SET @apellido = gestion_sede.udf_LimpiarApellidoMedico(@apellido)
+		SET @apellido = gestion_sede.LimpiarApellidoMedico(@apellido)
 
-		EXEC gestion_sede.usp_InsertarMedico
+		EXEC gestion_sede.InsertarMedico
 			@p_nombre		= @nombre,
 			@p_apellido		= @apellido,
 			@p_matricula	= @matricula,
@@ -323,7 +326,7 @@ GO
 /*
 -- para testear
 
-EXEC gestion_sede.usp_ImportarMedico
+EXEC gestion_sede.ImportarMedico
 	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Medicos.csv'
 
 	select * from gestion_sede.Especialidad
