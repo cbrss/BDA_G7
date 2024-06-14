@@ -412,7 +412,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarDomicilio
     @p_cod_postal INT		=	NULL,
     @p_pais VARCHAR(30),
     @p_provincia VARCHAR(30),
-    @p_localidad VARCHAR(30)
+    @p_localidad VARCHAR(50)
 AS
 BEGIN
     INSERT INTO gestion_paciente.Domicilio (
@@ -451,7 +451,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarDomicilio
     @p_cod_postal   INT			= NULL,
     @p_pais         VARCHAR(30) = NULL,
     @p_provincia    VARCHAR(30) = NULL,
-    @p_localidad    VARCHAR(30) = NULL
+    @p_localidad    VARCHAR(50) = NULL
 AS
 BEGIN
 
@@ -463,7 +463,7 @@ BEGIN
 		@cod_postal     INT,
 		@pais           VARCHAR(30),
 		@provincia      VARCHAR(30),
-		@localidad      VARCHAR(30)
+		@localidad      VARCHAR(50)
 
 	SELECT
 		@calle          = calle,
@@ -675,31 +675,6 @@ GO
 
 --- CREACION STORE PROCEDURES SEDE
 
--- BUSCAR SEDE
-
-CREATE OR ALTER PROCEDURE gestion_sede.ExisteSede
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30),
-	@r_existe		BIT	OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre = @p_nombre
-			AND direccion = @p_direccion
-			AND localidad = @p_localidad
-			AND provincia = @p_provincia
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO
 
 -- ACTUALIZAR SEDE
 
@@ -747,12 +722,11 @@ AS
 BEGIN
 	DECLARE @existe BIT
 
-	EXEC gestion_sede.ExisteSede
+	EXEC @existe = gestion_sede.ExisteSede
 		@p_nombre		= @p_nombre,
 		@p_direccion	= @p_direccion,
 		@p_localidad	= @p_localidad,
-		@p_provincia	= @p_provincia,
-		@r_existe		= @existe OUTPUT
+		@p_provincia	= @p_provincia
 
 	IF @existe = 1
 	BEGIN
@@ -795,28 +769,6 @@ GO
 
 --- CREACION STORE PROCEDURES MEDICO
 
--- BUSCAR MEDICO
-
-CREATE OR ALTER PROCEDURE gestion_sede.ExisteMedico 
-	@p_nombre			VARCHAR(30),
-	@p_apellido			VARCHAR(30),
-	@p_matricula		INT,
-	@r_existe			BIT OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Medico
-		WHERE nombre			= @p_nombre
-			AND	apellido		= @p_apellido
-			AND matricula		= @p_matricula
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO	
 
 -- ACTUALIZAR MEDICO
 

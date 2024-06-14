@@ -23,7 +23,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPacientes
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #Csv (
 		nombre			VARCHAR(30),
 		apellido		VARCHAR(30),
 		fecha_nac		VARCHAR(10),
@@ -36,9 +36,16 @@ BEGIN
 		mail			VARCHAR(30),
 		calle_y_nro		VARCHAR(50),
 		localidad		VARCHAR(50),
-		provincia		VARCHAR(50)
+		provincia		VARCHAR(50),
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	CREATE TABLE #Domicilio(
+		calle		VARCHAR(30),
+		numero		INT,
+		provincia	VARCHAR(30),
+		localidad	VARCHAR(50)
+	)
+
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #Csv 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -48,59 +55,14 @@ BEGIN
 											);'
 	EXEC sp_executesql @consulta_sql
 	
+	INSERT INTO #Domicilio (calle, numero, provincia, localidad)
+	SELECT p.calle, p.numero, c.provincia, c.localidad
+	FROM #Csv c
+	CROSS APPLY gestion_paciente.ParsearDomicilio(c.calle_y_nro) p
 
-	DECLARE 
-		@nombre				VARCHAR(30), 
-		@apellido			VARCHAR(30), 
-		@fecha_nac			VARCHAR(10),
-		@fecha_nac_date		DATE,
-		@tipo_doc			CHAR(5),
-		@nro_doc			INT, 
-		@sexo				VARCHAR(11), 
-		@genero				VARCHAR(9),
-		@telefono			VARCHAR(15),
-		@nacionalidad		VARCHAR(30), 
-		@mail				VARCHAR(30),
-		@calle_y_nro		VARCHAR(50),
-        @localidad			VARCHAR(50),
-        @provincia			VARCHAR(50),
-        @calle				VARCHAR(30),
-        @numero				VARCHAR(30),
-		@id_paciente		INT,
-		@apellido_materno	VARCHAR(30)
+	--INSERT INTO gestion_paciente.Domicilio( calle, numero)
 
-	DECLARE cursor_pacientes CURSOR FOR 
-    SELECT nombre, apellido, fecha_nac, tipo_doc, nro_doc, sexo, genero, telefono, nacionalidad, mail, calle_y_nro, localidad, provincia 
-    FROM #csv_TT;
-
-	
-	SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
-		
-    SELECT @calle = calle, @numero = numero FROM gestion_paciente.ParsearDomicilio (@calle_y_nro);
-	SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
-
-	/*EXEC gestion_paciente.InsertarPaciente
-		@p_nombre			= @nombre,
-		@p_apellido			= @apellido,
-		@p_apellido_materno = @apellido_materno,
-		@p_fecha_nac		= @fecha_nac_date,
-		@p_tipo_doc			= @tipo_doc,
-		@p_num_doc			= @nro_doc,
-		@p_sexo				= @sexo,
-		@p_genero			= @genero,
-		@p_tel_fijo			= @telefono,
-		@p_nacionalidad		= @nacionalidad,
-		@p_mail				= @mail,
-		@p_id_identity		= @id_paciente	OUTPUT
-	
-	EXEC gestion_paciente.InsertarDomicilio
-		@p_id_paciente	= @id_paciente,
-		@p_calle		= @calle,
-		@p_numero		= @numero,
-		@p_pais			= @nacionalidad,
-		@p_localidad	= @localidad,
-		@p_provincia	= @provincia*/
-	
+	--SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
 	
 END
 GO

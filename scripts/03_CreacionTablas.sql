@@ -127,13 +127,11 @@ BEGIN
 		cod_postal			INT,
 		pais				VARCHAR(30),
 		provincia			VARCHAR(30),
-		localidad			VARCHAR(30),
+		localidad			VARCHAR(50),
 		
-		
-		CONSTRAINT Ck_DomicilioCalle		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', calle) = 0),
+
 		CONSTRAINT Ck_DomicilioPais			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
 		CONSTRAINT Ck_DomicilioProvincia	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
-		CONSTRAINT Ck_DomicilioLocalidad	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', localidad) = 0),
 		CONSTRAINT PK_DomicilioID PRIMARY KEY (id),
 		CONSTRAINT FK_Domicilio_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
