@@ -5,7 +5,7 @@
 		INTEGRANTES:
 			Cristian Raul Berrios Lima		42875289
 			Lautaro Da silva				42816815
-			Abigail Karina Peñafiel Huayta	41913506
+			Abigail Karina PeÃ±afiel Huayta	41913506
 
 		FECHA DE ENTREGA: 14/6/2024
 */
@@ -13,7 +13,7 @@
 
 
 /*
-	Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
+	Los turnos para atenciÃ³n mÃ©dica tienen como estado inicial disponible, segÃºn el mÃ©dico, la 
 	especialidad y la sede.
 */
 
@@ -71,6 +71,25 @@ EXEC gestion_turno.usp_InsertarReservaTurno
 	@p_id_tipo_turno = @p_id_tipo_turno;
 
 select * from gestion_turno.ReservaTurno
+
+EXEC gestion_paciente.usp_AutorizarEstudio 
+	@p_id_estudio		= 41365,
+	@p_dni_paciente		= 4268398306,
+	@p_plan_prestador	=  'Jovenes',	
+	@p_ruta				= '../entrega/lote_de_prueba_autorizar.json',	
+	@p_respuesta		= '';
+
+EXEC gestion_paciente.usp_ImportarPacientes
+	@p_ruta	= '../entrega/lote_de_prueba_paciente.csv'
+
+EXEC  gestion_paciente.usp_ImportarPrestadores
+	@p_ruta = '../entrega/lote_de_prueba_prestador.csv'
+
+EXEC gestion_sede.usp_ImportarSede
+	@p_ruta = '../entrega/lote_de_prueba_sede.csv'
+
+EXEC gestion_sede.usp_ImportarMedico
+	@p_ruta = '../entrega/lote_de_prueba_medico.csv'
 
 delete from gestion_turno.ReservaTurno where id = 10000
 delete from gestion_paciente.Paciente where nombre = 'testPaciente'
