@@ -1,0 +1,4 @@
+id,id_cobertura,nombre,plan
+3s,3456,Agustin,jovenes		---letra en el id
+32,3A5,Agustin,jovenes		---letra en el id_cobertura
+445,3456,Agust12n,jovenes		---numeros en el nombre

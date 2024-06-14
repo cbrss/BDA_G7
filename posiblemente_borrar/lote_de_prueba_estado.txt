@@ -1,0 +1,4 @@
+id,nombre
+4c,disponible		---letra en el id
+23,atend1d0		---numero en el nombre
+12,adwvaeg		---nombre no admitido

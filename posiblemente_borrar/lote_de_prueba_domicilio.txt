@@ -1,0 +1,18 @@
+id,id_paciente,calle,numero,piso,departamento,cod_postal,pais,provincia,localidad
+e,22,boulevard san martin,423,1,3,546,Argentina,Buenos Aires,Palermo	---letra como id
+2,2i,boulevard san martin,423,1,3,546,Argentina,Buenos Aires,Palermo	---letra en el id_paciente
+6,22,boulevard san martin,4aa,1,3,546,Argentina,Buenos Aires,Palermo	---letras en el numero de domicilio
+5,22,boulevard san martin,423,e,3,546,Argentina,Buenos Aires,Palermo	---letra en el piso de domicilio
+66,22,boulevard san martin,423,1,ocho,422,Argentina,Buenos Aires,Palermo	---letra como numero de departamento
+82,22,boulevard san martin,423,1,3,dwf,Argentina,Buenos Aires,Palermo	---letra como codigo postal
+09,22,boulevard san martin,423,1,3,546,Urugu41,Buenos Aires,Palermo	---numeros en el pais
+52,22,boulevard san martin,423,1,3,546,Argentina,3 Aires,Palermo	---numeros en la provincia
+566,22,boulevard san martin,423,1,3,546,Argentina,Buenos Aires,Paer3m0	---numeros en la localidad
+
+
+
+
+
+
+
+

@@ -1,0 +1,4 @@
+id,id_paciente,contrasena,fecha_creacion
+A,33,danwdoangroa,2020-02-02	---letra en lugar de numero en el id
+3,1ia,hgffghbyunji,2019-09-08	---letras en el id de paciente
+1,42,gtrd@77,2018-02-30		---fecha imposible

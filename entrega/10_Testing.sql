@@ -74,25 +74,6 @@ EXEC gestion_turno.usp_InsertarReservaTurno
 
 select * from gestion_turno.ReservaTurno
 
-EXEC gestion_paciente.usp_AutorizarEstudio 
-	@p_id_estudio		= 41365,
-	@p_dni_paciente		= 4268398306,
-	@p_plan_prestador	=  'Jovenes',	
-	@p_ruta				= '../entrega/lote_de_prueba_autorizar.json',	
-	@p_respuesta		= '';
-
-EXEC gestion_paciente.usp_ImportarPacientes
-	@p_ruta	= '../entrega/lote_de_prueba_paciente.csv'
-
-EXEC  gestion_paciente.usp_ImportarPrestadores
-	@p_ruta = '../entrega/lote_de_prueba_prestador.csv'
-
-EXEC gestion_sede.usp_ImportarSede
-	@p_ruta = '../entrega/lote_de_prueba_sede.csv'
-
-EXEC gestion_sede.usp_ImportarMedico
-	@p_ruta = '../entrega/lote_de_prueba_medico.csv'
-
 delete from gestion_turno.ReservaTurno where id = 10000
 delete from gestion_paciente.Paciente where nombre = 'testPaciente'
 delete from gestion_sede.Medico where nombre = 'testMedico'
@@ -100,3 +81,33 @@ delete from gestion_sede.Especialidad where nombre = 'testEspecialidad'
 delete from gestion_sede.Sede where nombre = 'testSede'
 delete from gestion_turno.EstadoTurno where id = 100 or id = 101
 delete from gestion_turno.TipoTurno where id = 1000
+
+/*
+Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
+un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, se le envía el código 
+del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
+el importe a facturarle al paciente.
+*/
+EXEC gestion_paciente.usp_AutorizarEstudio 
+	@p_id_estudio		= 41365,
+	@p_dni_paciente		= 4268398306,
+	@p_plan_prestador	=  'Jovenes',	
+	@p_ruta				= '../lote_de_pruebas/lote_de_prueba_autorizar.json',	
+	@p_respuesta		= '';
+
+/*
+Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "lote_de_pruebas"
+*/
+EXEC gestion_paciente.usp_ImportarPacientes
+	@p_ruta	= '../lote_de_pruebas/lote_de_prueba_paciente.csv'
+
+EXEC  gestion_paciente.usp_ImportarPrestadores
+	@p_ruta = '../lote_de_pruebas/lote_de_prueba_prestador.csv'
+
+EXEC gestion_sede.usp_ImportarSede
+	@p_ruta = '../lote_de_pruebas/lote_de_prueba_sede.csv'
+
+EXEC gestion_sede.usp_ImportarMedico
+	@p_ruta = '../lote_de_pruebas/lote_de_prueba_medico.csv'
+
+

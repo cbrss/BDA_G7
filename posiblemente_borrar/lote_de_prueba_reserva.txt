@@ -1,0 +1,10 @@
+id,fecha,hora,id_paciente,id_medico,id_especialidad,id_sede_atencion,id_estado_turno,id_tipo_turno,borrado_logico
+5r,2024-01-23,4685,4279,0528,57834,387,364,0	---letra en el id
+59,2024-13-23,4685,4279,0528,57834,387,364,0	---fecha invalida
+15,2024-01-23,4b85,4279,0528,57834,387,364,0	---letra en el id_paciente
+09,2024-01-23,4685,42pl9,0528,57834,387,364,0	---letra en el id_medico
+378,2024-01-23,4685,4279,05s8,57834,387,364,0	---letra en el id_especilidad
+55,2024-01-23,4685,4279,0528,5TE834,387,364,0	---letra en el id_sede_atencion
+91,2024-01-23,4685,4279,0528,57834,3m7,364,0	---letra en el id_estado_turno
+2,2024-01-23,4685,4279,0528,57834,387,E64,0	---letra en el id_tipo_turno
+

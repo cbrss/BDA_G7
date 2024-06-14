@@ -1,6 +1,0 @@
-id,id_paciente,imagen_credencial,nro_socio,fecha_registro
-5i,43,imagennnn,3125,2000-04-30		---letra en el id
-5,4e,imagennnn,3125,2000-04-30		---letra en el id_paciente
-53,43,imagennnn,31er,2000-04-30		---letra en el numero de socio
-59,43,imagennnn,3125,2000-02-30		---fecha de registro imposible
-
