@@ -24,6 +24,7 @@
 --	el id es ingresado por operador, por lo tanto, se valida que exista dicho paciente previo a intentar insertarlo
 
 -- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
+
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPaciente
 	@p_id					INT				= NULL,
 	@p_nombre				VARCHAR(30),
@@ -199,7 +200,8 @@ BEGIN
         tel_alt					= ISNULL(@p_tel_alt, @tel_alt),
         tel_laboral				= ISNULL(@p_tel_laboral, @tel_laboral),
 		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico),
-        fecha_actualizacion		= GETDATE()
+        fecha_actualizacion		= GETDATE(),
+		usr_actualizacion		= SYSTEM_USER
 	WHERE id = @p_id
 END;
 GO

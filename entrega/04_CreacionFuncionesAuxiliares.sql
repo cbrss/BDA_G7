@@ -74,8 +74,7 @@ BEGIN
 	BEGIN
 		SET @p_respuesta = 'Se requiere autorizacion y el estudio no esta autorizado.'
 	END
-	-- TODO: posiblemente se borra al terminar el scoop
-	drop table #json_TT
+
 END;
 GO
 
@@ -160,7 +159,7 @@ BEGIN
 END
 GO
 
---- FUNCIONES AUXILIARES PARA LA INSERCION DE PACIENTES
+--- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE PACIENTES
 
 CREATE OR ALTER FUNCTION gestion_paciente.udf_ExistePaciente(
 	@p_nombre				VARCHAR(30),
@@ -256,7 +255,7 @@ END
 GO
 
 
---- AUXILIARES PARA IMPORTAR MEDICOS
+--- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA IMPORTAR MEDICOS
 
 CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteEspecialidad (@p_nombre VARCHAR(20)
 )
@@ -292,7 +291,7 @@ BEGIN
 END
 GO	
 
---- AUXILIARES PARA INSERCION DE MEDICOS
+--- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE MEDICOS
 
 CREATE OR ALTER FUNCTION gestion_sede.udf_ExisteMedico (
 	@p_nombre			VARCHAR(30),

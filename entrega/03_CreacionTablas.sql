@@ -41,7 +41,7 @@ BEGIN
 		tel_laboral			VARCHAR(15),
 		fecha_registro		DATE,
 		fecha_actualizacion	DATE,
-		usr_actualizacion	DATE,
+		usr_actualizacion	VARCHAR(20),
 		borrado_logico		BIT DEFAULT 0,
 
 		/*CONSTRAINT Ck_PacientNomb		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
