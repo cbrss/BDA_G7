@@ -46,12 +46,9 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 	
-	-- cursor es como un puntero a un archivo, se tiene que abrir, cerrar y desalocar por tema de liberacion de recursos
-	-- con esto podemos iterar sobre cada fila y ejecutar alguna accion, osea ejecutamos el sp de insertar
-	-- @@fetch_status devuelve si la ultima operacion fue exitosa, si insertarPaciente no inserto, entonces fetch_status se vuelve 1 y termina el ciclo
-	-- si inserto, entonces se mantiene en 0
+
 	DECLARE 
 		@nombre				VARCHAR(30), 
 		@apellido			VARCHAR(30), 
@@ -76,43 +73,34 @@ BEGIN
     SELECT nombre, apellido, fecha_nac, tipo_doc, nro_doc, sexo, genero, telefono, nacionalidad, mail, calle_y_nro, localidad, provincia 
     FROM #csv_TT;
 
-	OPEN cursor_pacientes
-
-	FETCH NEXT FROM cursor_pacientes INTO @nombre, @apellido, @fecha_nac, @tipo_doc, @nro_doc, @sexo, @genero, @telefono, @nacionalidad, @mail, @calle_y_nro, @localidad, @provincia;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
+	
+	SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
 		
-        SELECT @calle = calle, @numero = numero FROM gestion_paciente.tvf_ParsearDomicilio (@calle_y_nro);
-		SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
+    SELECT @calle = calle, @numero = numero FROM gestion_paciente.ParsearDomicilio (@calle_y_nro);
+	SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
 
-		EXEC gestion_paciente.InsertarPaciente
-			@p_nombre			= @nombre,
-			@p_apellido			= @apellido,
-			@p_apellido_materno = @apellido_materno,
-			@p_fecha_nac		= @fecha_nac_date,
-			@p_tipo_doc			= @tipo_doc,
-			@p_num_doc			= @nro_doc,
-			@p_sexo				= @sexo,
-			@p_genero			= @genero,
-			@p_tel_fijo			= @telefono,
-			@p_nacionalidad		= @nacionalidad,
-			@p_mail				= @mail,
-			@p_id_identity		= @id_paciente	OUTPUT
+	/*EXEC gestion_paciente.InsertarPaciente
+		@p_nombre			= @nombre,
+		@p_apellido			= @apellido,
+		@p_apellido_materno = @apellido_materno,
+		@p_fecha_nac		= @fecha_nac_date,
+		@p_tipo_doc			= @tipo_doc,
+		@p_num_doc			= @nro_doc,
+		@p_sexo				= @sexo,
+		@p_genero			= @genero,
+		@p_tel_fijo			= @telefono,
+		@p_nacionalidad		= @nacionalidad,
+		@p_mail				= @mail,
+		@p_id_identity		= @id_paciente	OUTPUT
 	
-		EXEC gestion_paciente.InsertarDomicilio
-			@p_id_paciente	= @id_paciente,
-			@p_calle		= @calle,
-			@p_numero		= @numero,
-			@p_pais			= @nacionalidad,
-			@p_localidad	= @localidad,
-			@p_provincia	= @provincia
+	EXEC gestion_paciente.InsertarDomicilio
+		@p_id_paciente	= @id_paciente,
+		@p_calle		= @calle,
+		@p_numero		= @numero,
+		@p_pais			= @nacionalidad,
+		@p_localidad	= @localidad,
+		@p_provincia	= @provincia*/
 	
-		FETCH NEXT FROM cursor_pacientes INTO @nombre, @apellido, @fecha_nac, @tipo_doc, @nro_doc, @sexo, @genero, @telefono, @nacionalidad, @mail, @calle_y_nro, @localidad, @provincia;
-	END
-	CLOSE cursor_pacientes
-	DEALLOCATE cursor_pacientes	
 	
 END
 GO
@@ -153,7 +141,7 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
 	DECLARE 
 		@nombre VARCHAR(30),
@@ -214,7 +202,7 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
 	DECLARE 
 		@nombre		VARCHAR(30),
@@ -280,7 +268,7 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
 	DECLARE 
 		@apellido			VARCHAR(30),
