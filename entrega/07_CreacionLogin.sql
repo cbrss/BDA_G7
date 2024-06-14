@@ -12,7 +12,7 @@
 
 
 --- CREACION LOGINS
-EXECUTE AS USER = 'dbo'	-- ya que tiene todo el control para asignar permisos
+EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos
 
 -- ADMINISTRADOR
 IF NOT EXISTS (

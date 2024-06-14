@@ -13,119 +13,6 @@
 ---- CREACION STORE PROCEDURES ESQUEMA GESTION PACIENTE
 
 --- CREACION STORE PROCEDURES PACIENTE
-
--- INSERTAR PACIENTE
--- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
--- los NULL son porque en la estructura de los archivos a importar no son valores dados.
--- el null en p_id es un caso especifico, es identity por lo tanto, no deberia poder enviarse
--- pero al manejar borrado logico, es de esperar que algun operador del hospital envie algun ID de un archivo fisico que ellos tengan del paciente
--- donde se vea el id que se le fue asignado, por lo tanto existen 2 casos:
---	el id es importado, por lo tanto, se utiliza identity y se inserta directamente
---	el id es ingresado por operador, por lo tanto, se valida que exista dicho paciente previo a intentar insertarlo
-
--- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
-
-CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPaciente
-	@p_id					INT				= NULL,
-	@p_nombre				VARCHAR(30),
-	@p_apellido				VARCHAR(30),
-	@p_apellido_materno		VARCHAR(30)		= NULL,
-	@p_fecha_nac			DATE,
-	@p_tipo_doc				CHAR(5),
-	@p_num_doc				INT,
-	@p_sexo					VARCHAR(11),
-	@p_genero				VARCHAR(9),
-	@p_nacionalidad			VARCHAR(20),
-	@p_foto_perfil			VARCHAR(max)	= NULL,
-	@p_mail					VARCHAR(30),
-	@p_tel_fijo				VARCHAR(15),
-	@p_tel_alt				VARCHAR(15)		= NULL,
-	@p_tel_laboral			VARCHAR(15)		= NULL,
-	@p_id_identity			INT				= NULL OUTPUT 
-AS
-BEGIN
-	DECLARE @existe			BIT
-	DECLARE @borrado		BIT
-
-	EXEC @existe = gestion_paciente.udf_ExistePaciente 
-						@p_nombre			= @p_nombre,
-						@p_apellido			= @p_apellido,
-						@p_fecha_nac		= @p_fecha_nac,
-						@p_tipo_doc			= @p_tipo_doc,
-						@p_num_doc			= @p_num_doc,
-						@p_sexo				= @p_sexo,
-						@p_genero			= @p_genero,
-						@p_nacionalidad		= @p_nacionalidad
-				
-
-	SET @borrado = (select borrado_logico from gestion_paciente.Paciente where id = @p_id)
-
-	IF @existe = 1 AND @borrado = 1						--	CASO: el operador de la clinica reincorpora un paciente
-    BEGIN
-		EXEC gestion_paciente.usp_ActualizarPaciente
-				@p_id					= @p_id,
-				@p_nombre				= @p_nombre,
-				@p_apellido				= @p_apellido,
-				@p_apellido_materno		= @p_apellido_materno,
-				@p_fecha_nac			= @p_fecha_nac,
-				@p_tipo_doc				= @p_tipo_doc,
-				@p_num_doc				= @p_num_doc,
-				@p_sexo					= @p_sexo,
-				@p_genero				= @p_genero,
-				@p_nacionalidad			= @p_nacionalidad,
-				@p_foto_perfil			= @p_foto_perfil,
-				@p_mail					= @p_mail,
-				@p_tel_fijo				= @p_tel_fijo,
-				@p_tel_alt				= @p_tel_alt,
-				@p_tel_laboral			= @p_tel_laboral,
-				@p_borrado_logico		= 0
-    END
-    ELSE IF @existe = 1									--	CASO: el paciente ya esta registrado 
-		RETURN
-	ELSE
-    BEGIN												--	CASO: el operador de la clinica ingresa un nuevo paciente
-        INSERT INTO gestion_paciente.Paciente (
-            nombre,
-            apellido,
-            apellido_materno,
-            fecha_nac,
-            tipo_doc,
-            num_doc,
-            sexo,
-            genero,
-            nacionalidad,
-            foto_perfil,
-            mail,
-            tel_fijo,
-            tel_alt,
-            tel_laboral,
-            fecha_registro,
-            fecha_actualizacion
-        )
-        VALUES (
-            @p_nombre,
-            @p_apellido,
-            @p_apellido_materno,
-            @p_fecha_nac,
-            @p_tipo_doc,
-            @p_num_doc,
-            @p_sexo,
-            @p_genero,
-            @p_nacionalidad,
-            @p_foto_perfil,
-            @p_mail,
-            @p_tel_fijo,
-            @p_tel_alt,
-            @p_tel_laboral,
-            GETDATE(),
-            GETDATE()
-        );
-		SET @p_id_identity = SCOPE_IDENTITY()
-    END
-END;
-GO
-
-
 -- ACTUALIZAR PACIENTE
 
 CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarPaciente
@@ -201,10 +88,124 @@ BEGIN
         tel_laboral				= ISNULL(@p_tel_laboral, @tel_laboral),
 		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico),
         fecha_actualizacion		= GETDATE(),
-		usr_actualizacion		= SYSTEM_USER
+		usr_actualizacion		= ORIGINAL_LOGIN()
 	WHERE id = @p_id
 END;
 GO
+
+-- INSERTAR PACIENTE
+-- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
+-- los NULL son porque en la estructura de los archivos a importar no son valores dados.
+-- el null en p_id es un caso especifico, es identity por lo tanto, no deberia poder enviarse
+-- pero al manejar borrado logico, es de esperar que algun operador del hospital envie algun ID de un archivo fisico que ellos tengan del paciente
+-- donde se vea el id que se le fue asignado, por lo tanto existen 2 casos:
+--	el id es importado, por lo tanto, se utiliza identity y se inserta directamente
+--	el id es ingresado por operador, por lo tanto, se valida que exista dicho paciente previo a intentar insertarlo
+
+-- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
+
+CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarPaciente
+	@p_id					INT				= NULL,
+	@p_nombre				VARCHAR(30),
+	@p_apellido				VARCHAR(30),
+	@p_apellido_materno		VARCHAR(30),
+	@p_fecha_nac			DATE,
+	@p_tipo_doc				CHAR(5),
+	@p_num_doc				INT,
+	@p_sexo					VARCHAR(11),
+	@p_genero				VARCHAR(9),
+	@p_nacionalidad			VARCHAR(20),
+	@p_foto_perfil			VARCHAR(max)	= NULL,
+	@p_mail					VARCHAR(30),
+	@p_tel_fijo				VARCHAR(15),
+	@p_tel_alt				VARCHAR(15)		= NULL,
+	@p_tel_laboral			VARCHAR(15)		= NULL,
+	@p_id_identity			INT				= NULL OUTPUT 
+AS
+BEGIN
+	DECLARE @existe			BIT
+	DECLARE @borrado		BIT
+
+	EXEC @existe = gestion_paciente.udf_ExistePaciente 
+						@p_nombre			= @p_nombre,
+						@p_apellido			= @p_apellido,
+						@p_fecha_nac		= @p_fecha_nac,
+						@p_tipo_doc			= @p_tipo_doc,
+						@p_num_doc			= @p_num_doc,
+						@p_sexo				= @p_sexo,
+						@p_genero			= @p_genero,
+						@p_nacionalidad		= @p_nacionalidad
+				
+
+	SET @borrado = (select borrado_logico from gestion_paciente.Paciente where id = @p_id)
+
+	IF @existe = 1 AND @borrado = 1						--	CASO: el operador de la clinica reincorpora un paciente
+    BEGIN
+		EXEC gestion_paciente.usp_ActualizarPaciente
+				@p_id					= @p_id,
+				@p_nombre				= @p_nombre,
+				@p_apellido				= @p_apellido,
+				@p_apellido_materno		= @p_apellido_materno,
+				@p_fecha_nac			= @p_fecha_nac,
+				@p_tipo_doc				= @p_tipo_doc,
+				@p_num_doc				= @p_num_doc,
+				@p_sexo					= @p_sexo,
+				@p_genero				= @p_genero,
+				@p_nacionalidad			= @p_nacionalidad,
+				@p_foto_perfil			= @p_foto_perfil,
+				@p_mail					= @p_mail,
+				@p_tel_fijo				= @p_tel_fijo,
+				@p_tel_alt				= @p_tel_alt,
+				@p_tel_laboral			= @p_tel_laboral,
+				@p_borrado_logico		= 0
+    END
+    ELSE IF @existe = 1									--	CASO: el paciente ya esta registrado 
+		RETURN
+	ELSE
+    BEGIN												--	CASO: el operador de la clinica ingresa un nuevo paciente
+        INSERT INTO gestion_paciente.Paciente (
+            nombre,
+            apellido,
+            apellido_materno,
+            fecha_nac,
+            tipo_doc,
+            num_doc,
+            sexo,
+            genero,
+            nacionalidad,
+            foto_perfil,
+            mail,
+            tel_fijo,
+            tel_alt,
+            tel_laboral,
+            fecha_registro,
+            fecha_actualizacion,
+			usr_actualizacion
+        )
+        VALUES (
+            @p_nombre,
+            @p_apellido,
+            @p_apellido_materno,
+            @p_fecha_nac,
+            @p_tipo_doc,
+            @p_num_doc,
+            @p_sexo,
+            @p_genero,
+            @p_nacionalidad,
+            @p_foto_perfil,
+            @p_mail,
+            @p_tel_fijo,
+            @p_tel_alt,
+            @p_tel_laboral,
+            GETDATE(),
+            GETDATE(),
+			ORIGINAL_LOGIN()
+        );
+		SET @p_id_identity = SCOPE_IDENTITY()
+    END
+END;
+GO
+
 
 -- BORRAR PACIENTE
 
@@ -215,6 +216,10 @@ AS
 BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET	borrado_logico = 1
+	WHERE id = @p_id;
+
+	UPDATE gestion_paciente.Paciente
+	SET	usr_actualizacion = ORIGINAL_LOGIN()
 	WHERE id = @p_id;
 END;
 GO

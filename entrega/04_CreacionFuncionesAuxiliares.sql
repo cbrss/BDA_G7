@@ -60,7 +60,7 @@ BEGIN
 		@req_autorizacion	= JSON_VALUE(value, '$."Requiere autorizacion"'),
 		@auxiliar = @auxiliar + 1
 	FROM OPENJSON(@json) AS j
-	where JSON_VALUE(value, '$.Estudio') = @nombre_estudio 
+	WHERE JSON_VALUE(value, '$.Estudio') = @nombre_estudio 
 		AND JSON_VALUE(value, '$.Plan') = @p_plan_prestador
 	
 	IF	@auxiliar = 0
@@ -196,11 +196,39 @@ BEGIN
 END
 GO	
 
+CREATE OR ALTER FUNCTION gestion_paciente.udf_LimpiarApellidoMaterno (@p_apellido	VARCHAR(30))
+RETURNS VARCHAR(30)
+BEGIN 
+	DECLARE @apellido_materno	VARCHAR(30)
+	DECLARE @auxiliar			VARCHAR(30)
+	SET @p_apellido = LTRIM(@p_apellido)
+	SET @auxiliar = LOWER(@p_apellido)
+	
+
+	
+	IF PATINDEX('de %', @auxiliar) > 0 OR PATINDEX('del %',@auxiliar) > 0
+	BEGIN
+		SET @apellido_materno = @p_apellido		-- el 3er parametro de charindex indica desde donde comienzo a buscar
+	END
+	ELSE IF CHARINDEX(' ', @auxiliar) > 0
+	BEGIN
+		SET @apellido_materno = SUBSTRING(@p_apellido, 1, CHARINDEX(' ', @p_apellido))
+	END
+	ELSE
+	BEGIN
+		SET @apellido_materno = @p_apellido
+	END
+	
+	RETURN @apellido_materno
+END
+GO
+
+--- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA IMPORTACION DE PACIENTES
 
 CREATE OR ALTER FUNCTION gestion_paciente.tvf_ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
 	calle		VARCHAR(30),
-	numero		INT
+	numero		VARCHAR(20)
 )
 AS
 BEGIN
@@ -321,3 +349,4 @@ BEGIN
 	RETURN @r_existe
 END
 GO	
+

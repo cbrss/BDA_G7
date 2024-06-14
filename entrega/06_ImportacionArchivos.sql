@@ -51,23 +51,24 @@ BEGIN
 	-- @@fetch_status devuelve si la ultima operacion fue exitosa, si insertarPaciente no inserto, entonces fetch_status se vuelve 1 y termina el ciclo
 	-- si inserto, entonces se mantiene en 0
 	DECLARE 
-		@nombre			VARCHAR(30), 
-		@apellido		VARCHAR(30), 
-		@fecha_nac		VARCHAR(10),
-		@fecha_nac_date DATE,
-		@tipo_doc		CHAR(5),
-		@nro_doc		INT, 
-		@sexo			VARCHAR(11), 
-		@genero			VARCHAR(9),
-		@telefono		VARCHAR(15),
-		@nacionalidad	VARCHAR(30), 
-		@mail			VARCHAR(30),
-		@calle_y_nro	VARCHAR(50),
-        @localidad		VARCHAR(50),
-        @provincia		VARCHAR(50),
-        @calle			VARCHAR(30),
-        @numero			VARCHAR(30),
-		@id_paciente	INT
+		@nombre				VARCHAR(30), 
+		@apellido			VARCHAR(30), 
+		@fecha_nac			VARCHAR(10),
+		@fecha_nac_date		DATE,
+		@tipo_doc			CHAR(5),
+		@nro_doc			INT, 
+		@sexo				VARCHAR(11), 
+		@genero				VARCHAR(9),
+		@telefono			VARCHAR(15),
+		@nacionalidad		VARCHAR(30), 
+		@mail				VARCHAR(30),
+		@calle_y_nro		VARCHAR(50),
+        @localidad			VARCHAR(50),
+        @provincia			VARCHAR(50),
+        @calle				VARCHAR(30),
+        @numero				VARCHAR(30),
+		@id_paciente		INT,
+		@apellido_materno	VARCHAR(30)
 
 	DECLARE cursor_pacientes CURSOR FOR 
     SELECT nombre, apellido, fecha_nac, tipo_doc, nro_doc, sexo, genero, telefono, nacionalidad, mail, calle_y_nro, localidad, provincia 
@@ -81,20 +82,22 @@ BEGIN
 	BEGIN
 		SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
 		
-        SELECT @calle = calle, @numero = numero FROM gestion_paciente.tvf_ParsearDomicilio(@calle_y_nro);
+        SELECT @calle = calle, @numero = numero FROM gestion_paciente.tvf_ParsearDomicilio (@calle_y_nro);
+		SET @apellido_materno = gestion_paciente.udf_LimpiarApellidoMaterno (@apellido)
 
 		EXEC gestion_paciente.usp_InsertarPaciente
-			@p_nombre		= @nombre,
-			@p_apellido		= @apellido,
-			@p_fecha_nac	= @fecha_nac_date,
-			@p_tipo_doc		= @tipo_doc,
-			@p_num_doc		= @nro_doc,
-			@p_sexo			= @sexo,
-			@p_genero		= @genero,
-			@p_tel_fijo		= @telefono,
-			@p_nacionalidad = @nacionalidad,
-			@p_mail			= @mail,
-			@p_id_identity	= @id_paciente	OUTPUT
+			@p_nombre			= @nombre,
+			@p_apellido			= @apellido,
+			@p_apellido_materno = @apellido_materno,
+			@p_fecha_nac		= @fecha_nac_date,
+			@p_tipo_doc			= @tipo_doc,
+			@p_num_doc			= @nro_doc,
+			@p_sexo				= @sexo,
+			@p_genero			= @genero,
+			@p_tel_fijo			= @telefono,
+			@p_nacionalidad		= @nacionalidad,
+			@p_mail				= @mail,
+			@p_id_identity		= @id_paciente	OUTPUT
 	
 		EXEC gestion_paciente.usp_InsertarDomicilio
 			@p_id_paciente	= @id_paciente,
@@ -115,12 +118,17 @@ GO
 -- para testear:
 /*
 TODO: falta apellido materno y en usr actualizacion ver el tema de rol
-
+delete from gestion_paciente.Domicilio
+delete from gestion_paciente.Paciente
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
 
 EXEC gestion_paciente.usp_ImportarPacientes 
 		@p_ruta = @p_ruta
 GO
+
+SELECT * from gestion_paciente.Paciente
+
+
 */
 
 -- IMPORTAR PRESTADOR

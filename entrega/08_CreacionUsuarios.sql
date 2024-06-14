@@ -13,7 +13,8 @@
 
 --- CREACION USUARIOS
 
-EXECUTE AS USER = 'dbo'	-- ya que tiene todo el control para asignar permisos
+EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos
+
 
 -- USUARIO ADMINISTRADOR
 IF NOT EXISTS (
@@ -24,7 +25,7 @@ IF NOT EXISTS (
 BEGIN
 	CREATE USER db_administrador FOR LOGIN db_administrador
 
-	GRANT ALL TO dba
+	GRANT ALL TO db_administrador
 END
 GO
 
@@ -39,7 +40,7 @@ BEGIN
 
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
 	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
-	-- GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
+	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno	TO db_desarrollador
 END
 GO
 
@@ -56,9 +57,9 @@ BEGIN
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarPaciente	TO clinica_operador
 	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarPaciente		TO clinica_operador
 
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
-	-- GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_InsertarTurno		TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_ActualizarTurno	TO clinica_operador
+	GRANT EXECUTE ON OBJECT::gestion_paciente.usp_BorrarTurno		TO clinica_operador
 END
 GO
 
@@ -73,7 +74,7 @@ BEGIN
 
 	GRANT EXECUTE ON SCHEMA::gestion_paciente	TO clinica_admin
 	GRANT EXECUTE ON SCHEMA::gestion_sede		TO clinica_admin
-	-- GRANT EXECUTE ON SCHEMA::gestion_turno	TO clinica_admin
+	GRANT EXECUTE ON SCHEMA::gestion_turno	TO clinica_admin
 END
 GO
 
