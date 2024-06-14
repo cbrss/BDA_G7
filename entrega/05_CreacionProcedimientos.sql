@@ -234,7 +234,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.usp_InsertarEstudio
 	@p_id				INT,
 	@p_id_paciente		INT,
 	@p_fecha			DATE,
-	@p_nombre_estudio	VARCHAR(100),
+	@p_nombre_estudio	VARCHAR(50),
 	@p_doc_resultado	VARCHAR(max),
 	@p_img_resultado	VARCHAR(max)
 AS
@@ -278,14 +278,14 @@ CREATE OR ALTER PROCEDURE gestion_paciente.usp_ActualizarEstudio
     @p_id                   INT,
     @p_id_paciente          INT,
     @p_fecha                DATE			= NULL,
-    @p_nombre_estudio       VARCHAR(100)	= NULL,
+    @p_nombre_estudio       VARCHAR(50)	= NULL,
     @p_doc_resultado        VARCHAR(MAX)	= NULL,
     @p_img_resultado        VARCHAR(MAX)	= NULL	
 AS
 BEGIN
 	DECLARE
 		@fecha				DATE,
-		@nombre_estudio		VARCHAR(100),
+		@nombre_estudio		VARCHAR(50),
 		@doc_resultado		VARCHAR(MAX),
 		@img_resultado		VARCHAR(MAX)
 	SELECT
@@ -1246,11 +1246,6 @@ BEGIN
 	END
 END
 GO
-
-
-
-
-
 
 -- BORRAR RESERVA DE TURNO
 

@@ -117,7 +117,7 @@ GO
 
 -- para testear:
 /*
-TODO: falta apellido materno y en usr actualizacion ver el tema de rol
+
 delete from gestion_paciente.Domicilio
 delete from gestion_paciente.Paciente
 DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
