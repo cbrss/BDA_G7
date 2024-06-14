@@ -1,0 +1,17 @@
+p_id_estudio = 2356,
+p_dni_paciente = 37653i7498,
+p_plan_prestador = jovenes,
+p_ruta = ../entrega/lote_de_prueba.json,
+p_respuesta = 
+
+p_id_estudio = 2356,
+p_dni_paciente = 3765317498,
+p_plan_prestador = daoinvoiw,
+p_ruta = ../entrega/lote_de_prueba.json,
+p_respuesta = 
+
+p_id_estudio = 2356,
+p_dni_paciente = 3765317498,
+p_plan_prestador = jovenes,
+p_ruta = ..|entrega/lote_de_prueba.json,
+p_respuesta = 
