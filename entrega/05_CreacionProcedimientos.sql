@@ -1189,7 +1189,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.usp_InsertarReservaTurno
 	@p_id_paciente				INT,
 	@p_id_medico				INT	= NULL,
 	@p_id_especialidad			INT	= NULL,
-	@p_id_sede_atencion			INT	= NULL,-- gestion_sede.Sede.direccion
+	@p_id_sede_atencion			INT	= NULL,
 	@p_id_tipo_turno			INT
 AS
 BEGIN
@@ -1246,6 +1246,11 @@ BEGIN
 	END
 END
 GO
+
+
+
+
+
 
 -- BORRAR RESERVA DE TURNO
 
