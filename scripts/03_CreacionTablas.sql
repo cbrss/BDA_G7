@@ -175,7 +175,7 @@ BEGIN
     CREATE TABLE gestion_paciente.Prestador
 	(
 		id					INT IDENTITY (1,1),
-		id_cobertura		INT	UNIQUE,
+		id_cobertura		INT,
 		nombre				VARCHAR(30),
 		[plan]				VARCHAR(30),
 
@@ -323,8 +323,8 @@ BEGIN
 		id_especialidad		INT,
 
 		
-		CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
+		/*CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),*/
 		CONSTRAINT PK_MedicoID			PRIMARY KEY (id),
 		CONSTRAINT FK_EspecialidadID	FOREIGN KEY (id_especialidad) REFERENCES gestion_sede.Especialidad(id)
 	 );

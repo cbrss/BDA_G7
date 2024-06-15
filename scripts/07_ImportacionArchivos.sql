@@ -16,14 +16,15 @@ GO
 
 --- CREACION DE PROCEDIMIENTOS DE IMPORTACION
 
--- IMPORTAR PACIENTE
+-- IMPORTAR PACIENTE Y DOMICILIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPacientes
 	@p_ruta				VARCHAR(max)
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #Csv (
+
+	CREATE TABLE #CsvPaciente (
 		nombre			VARCHAR(30),
 		apellido		VARCHAR(30),
 		fecha_nac		VARCHAR(10),
@@ -36,16 +37,14 @@ BEGIN
 		mail			VARCHAR(30),
 		calle_y_nro		VARCHAR(50),
 		localidad		VARCHAR(50),
-		provincia		VARCHAR(50),
+		provincia		VARCHAR(50)
 	)
-	CREATE TABLE #Domicilio(
-		calle		VARCHAR(30),
-		numero		INT,
-		provincia	VARCHAR(30),
-		localidad	VARCHAR(50)
+	CREATE TABLE #CsvId (
+		id_paciente		INT, 
+		nro				INT IDENTITY(1,1)
 	)
-
-	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #Csv 
+	BEGIN TRY
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvPaciente 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -54,18 +53,83 @@ BEGIN
 												FIRSTROW = 2
 											);'
 	EXEC sp_executesql @consulta_sql
-	
-	INSERT INTO #Domicilio (calle, numero, provincia, localidad)
-	SELECT p.calle, p.numero, c.provincia, c.localidad
-	FROM #Csv c
-	CROSS APPLY gestion_paciente.ParsearDomicilio(c.calle_y_nro) p
+	END TRY
+	BEGIN CATCH
+		IF ERROR_NUMBER() = 4861
+			PRINT 'La ruta del archivo ingresado no existe'
+	END CATCH
+	ALTER TABLE #CsvPaciente ADD nro INT IDENTITY(1,1)
 
-	--INSERT INTO gestion_paciente.Domicilio( calle, numero)
+	--	IMPORTAR PACIENTE
 
-	--SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
+	INSERT INTO gestion_paciente.Paciente(
+					nombre, 
+					apellido, 
+					apellido_materno, 
+					fecha_nac, 
+					tipo_doc, 
+					num_doc, 
+					sexo, 
+					genero, 
+					nacionalidad, 
+					tel_fijo, 
+					mail, 
+					fecha_actualizacion, 
+					usr_actualizacion
+				)
+	OUTPUT INSERTED.ID INTO #CsvId
+	SELECT C.nombre, 
+		C.apellido, 
+		gestion_paciente.LimpiarApellidoMaterno(c.apellido), 
+		TRY_CONVERT(DATE, c.fecha_nac, 103), 
+		C.tipo_doc, 
+		C.nro_doc, 
+		C.sexo, 
+		C.genero, 
+		C.nacionalidad, 
+		C.telefono, 
+		C.mail, 
+		GETDATE(), 
+		ORIGINAL_LOGIN()
+	FROM #CsvPaciente C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_paciente.Paciente P
+		WHERE nombre			= c.nombre
+			AND	apellido		= c.apellido
+			AND tipo_doc		= c.tipo_doc
+			AND num_doc			= c.nro_doc
+			AND nacionalidad	= c.nacionalidad
+	)
+
+	-- IMPORTAR DOMICILIO
 	
+	INSERT INTO gestion_paciente.Domicilio(
+					calle, 
+					numero, 
+					provincia, 
+					localidad, 
+					id_paciente
+				)
+	SELECT P.calle, 
+		P.numero, 
+		C.provincia, 
+		C.localidad, 
+		T.id_paciente
+	FROM #CsvPaciente C
+	CROSS APPLY gestion_paciente.ParsearDomicilio(c.calle_y_nro) P
+	JOIN #CsvId T on T.nro = C.nro
+	WHERE NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Domicilio D
+		WHERE D.calle = P.calle
+			AND	D.numero		= P.numero
+			AND D.localidad		= C.localidad
+			AND D.id_paciente	= T.id_paciente
+	)
 END
 GO
+
 
 -- para testear:
 /*
@@ -90,12 +154,12 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPrestadores
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvPrestador (
 		nombre			VARCHAR(30),
 		[plan]			VARCHAR(30),
-		basura			CHAR(1)
+		basura			VARCHAR(10)
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvPrestador 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -105,31 +169,19 @@ BEGIN
 											);'
 	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@nombre VARCHAR(30),
-		@plan	VARCHAR(30)
-
-	DECLARE cursor_prestadores CURSOR FOR 
-    SELECT nombre, [plan]
-    FROM #csv_TT;
-
-	OPEN cursor_prestadores
-
-	FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-		EXEC gestion_paciente.InsertarPrestador
-			@p_nombre		= @nombre,
-			@p_plan			= @plan
-			
-	
-		FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
-	END
-	CLOSE cursor_prestadores
-	DEALLOCATE cursor_prestadores	
-	
+	INSERT INTO gestion_paciente.Prestador(
+					nombre, 
+					[plan]
+				)
+	SELECT C.nombre, 
+		C.[plan]
+	FROM #CsvPrestador C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_paciente.Prestador
+		WHERE nombre			= C.nombre
+			AND	[plan]			= C.[plan]
+	)
 END
 GO
 -- para testear:
@@ -150,13 +202,13 @@ CREATE OR ALTER PROCEDURE gestion_sede.ImportarSede
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvSede (
 	    nombre		VARCHAR(30),
 	    direccion	VARCHAR(30),
 		localidad	VARCHAR(30),
 		provincia	VARCHAR(30)
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvSede 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -166,34 +218,27 @@ BEGIN
 											);'
 	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@nombre		VARCHAR(30),
-		@direccion	VARCHAR(30),
-		@localidad	VARCHAR(30),
-		@provincia	VARCHAR(30)
 
-	DECLARE cursor_sedes CURSOR FOR 
-    SELECT nombre, direccion, localidad, provincia
-    FROM #csv_TT;
 
-	OPEN cursor_sedes
-
-	FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-		EXEC gestion_sede.InsertarSede
-			@p_nombre		= @nombre,
-			@p_direccion	= @direccion,
-			@p_localidad	= @localidad,
-			@p_provincia	= @provincia
-
-			
-		FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-	END
-	CLOSE cursor_sedes
-	DEALLOCATE cursor_sedes	
+	INSERT INTO gestion_sede.Sede(
+					nombre, 
+					direccion,
+					localidad,
+					provincia
+				)
+	SELECT C.nombre, 
+		C.direccion,
+		C.localidad,
+		C.provincia
+	FROM #CsvSede C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Sede
+		WHERE nombre			= C.nombre
+			AND	direccion			= C.direccion
+			AND	localidad			= C.localidad
+			AND provincia			= C.provincia
+	)
 	
 END
 GO
@@ -205,6 +250,7 @@ EXEC gestion_sede.ImportarSede
 	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
 
 select * from gestion_sede.Sede
+delete from gestion_sede.Sede
 */
 
 
@@ -215,14 +261,14 @@ CREATE OR ALTER PROCEDURE gestion_sede.ImportarMedico
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvMedico (
 	    apellido		VARCHAR(30),
 		nombre			VARCHAR(30),
-		especialidad	VARCHAR(20),
+		especialidad	VARCHAR(30),
 		matricula		INT
 
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvMedico 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -232,43 +278,36 @@ BEGIN
 											);'
 	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@apellido			VARCHAR(30),
-		@nombre				VARCHAR(30),
-		@especialidad		VARCHAR(30),
-		@matricula			INT,
-		@id_especialidad	INT
+	INSERT INTO gestion_sede.Especialidad(
+					nombre
+				)
+	SELECT DISTINCT C.especialidad
+	FROM #CsvMedico C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Especialidad
+		WHERE nombre = C.especialidad
+	)
 
-
-	DECLARE cursor_medicos CURSOR FOR 
-    SELECT nombre, apellido, especialidad, matricula
-    FROM #csv_TT;
-
-	OPEN cursor_medicos
-
-	FETCH NEXT FROM cursor_medicos INTO @nombre, @apellido, @especialidad, @matricula
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-
-		EXEC gestion_sede.InsertarEspecialidad
-			@p_nombre = @especialidad
-
-		SELECT @id_especialidad = id FROM gestion_sede.Especialidad WHERE nombre = @especialidad
-
-		SET @apellido = gestion_sede.LimpiarApellidoMedico(@apellido)
-
-		EXEC gestion_sede.InsertarMedico
-			@p_nombre		= @nombre,
-			@p_apellido		= @apellido,
-			@p_matricula	= @matricula,
-			@p_id_especialidad	= @id_especialidad
-
-		FETCH NEXT FROM cursor_medicos INTO @nombre, @apellido, @especialidad, @matricula;
-	END
-	CLOSE cursor_medicos
-	DEALLOCATE cursor_medicos	
+	INSERT INTO gestion_sede.Medico(
+					nombre, 
+					apellido,
+					id_especialidad,
+					matricula
+				)
+				
+	SELECT C.nombre,
+		gestion_sede.LimpiarApellidoMedico(C.apellido), 
+		gestion_sede.BuscarIdEspecialidad(C.especialidad),
+		C.matricula
+	FROM #CsvMedico C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Medico
+		WHERE nombre			= C.nombre
+			AND	apellido			= C.apellido
+			AND	matricula			= C.matricula
+	)
 	
 END
 GO

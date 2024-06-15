@@ -45,7 +45,7 @@ CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
 RETURNS BIT
 BEGIN
 	DECLARE @r_existe BIT
-	IF EXISTS(
+	IF EXISTS (
 		SELECT 1
 		FROM gestion_paciente.Paciente
 		WHERE nombre			= @p_nombre
@@ -98,7 +98,7 @@ BEGIN
 END
 GO	
 
-CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(20)
+CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(30)
 )
 RETURNS BIT
 BEGIN
@@ -119,6 +119,17 @@ BEGIN
 	RETURN @r_existe
 END
 GO	
+
+CREATE OR ALTER FUNCTION gestion_Sede.BuscarIdEspecialidad (@p_nombre VARCHAR(30))
+RETURNS INT
+BEGIN
+	DECLARE @r_id INT
+
+	SET @r_id = (SELECT id FROM gestion_sede.Especialidad WHERE nombre = @p_nombre)
+
+	RETURN @r_id
+END
+GO
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE SEDES
 
@@ -218,7 +229,6 @@ BEGIN
 	SET @p_apellido = LTRIM(@p_apellido)
 	SET @auxiliar = LOWER(@p_apellido)
 	
-
 	
 	IF PATINDEX('de %', @auxiliar) > 0 OR PATINDEX('del %',@auxiliar) > 0
 	BEGIN
