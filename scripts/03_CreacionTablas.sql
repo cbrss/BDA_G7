@@ -52,13 +52,28 @@ BEGIN
 													AND LEN(apellido) <= 30
 												),
 		CONSTRAINT Ck_PacienteApellidoMaterno	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0
-													AND LEN(apellido) <= 30
+													AND LEN(apellido_materno) <= 30
 												),
 		CONSTRAINT Ck_PacienteTipoDoc			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
-		CONSTRAINT Ck_PacienteSexo				CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
+		CONSTRAINT Ck_PacienteSexo				CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0
+													AND LEN(sexo) <= 11
+												),
 		CONSTRAINT Ck_PacienteGenero			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
-		CONSTRAINT Ck_PacienteNacion			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),
-		CONSTRAINT Ck_PacienteMail				CHECK(mail LIKE '%_@_%.__%'),
+		CONSTRAINT Ck_PacienteNacionalidad		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0
+													AND LEN(nacionalidad) <= 20
+												),
+		CONSTRAINT Ck_PacienteMail				CHECK(mail LIKE '%_@_%.__%'
+													AND LEN(mail) <= 30
+												),
+		CONSTRAINT Ck_PacienteTelFijo			CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_fijo) <= 15
+												),
+		CONSTRAINT Ck_PacienteTelAlt			CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_alt) <= 15
+												),
+		CONSTRAINT Ck_PacienteTelLaboral		CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_laboral) <= 15
+												),
 		CONSTRAINT PK_PacienteID PRIMARY KEY (id)
 	);
 END;
@@ -79,13 +94,16 @@ BEGIN
 		id					INT,
 		id_paciente			INT,
 		fecha				DATE,
-		nombre_estudio		VARCHAR(50),
+		nombre				VARCHAR(50),
 		autorizado			BIT DEFAULT 0,
 		doc_resultado		VARCHAR(max),
 		img_resultado		VARCHAR(max),
 		borrado_logico		BIT DEFAULT 0,
 
-		CONSTRAINT PK_EstudioID PRIMARY KEY(id),
+		CONSTRAINT Ck_EstudioNombre		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+													AND LEN(nombre) <= 30
+												),
+		CONSTRAINT PK_EstudioID			 PRIMARY KEY(id),
 		CONSTRAINT FK_Estudio_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
 END;
@@ -108,6 +126,7 @@ BEGIN
 		contrasena			VARCHAR(30),
 		fecha_creacion		DATE,
 
+		CONSTRAINT Ck_UsuarioContrasena		CHECK(LEN(contrasena) <= 30),
 		CONSTRAINT PK_UsuarioID PRIMARY KEY(id),
 		CONSTRAINT FK_Usuario_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -136,9 +155,14 @@ BEGIN
 		provincia			VARCHAR(30),
 		localidad			VARCHAR(50),
 		
-
-		CONSTRAINT Ck_DomicilioPais			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
-		CONSTRAINT Ck_DomicilioProvincia	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
+		CONSTRAINT Ck_DomicilioCalle		CHECK(LEN(calle) <= 30),
+		CONSTRAINT Ck_DomicilioPais			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0
+													AND LEN(pais) <= 30
+												),
+		CONSTRAINT Ck_DomicilioProvincia	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0	
+													AND LEN(provincia) <= 30
+												),
+		CONSTRAINT Ck_DomicilioLocalidad	CHECK(LEN(localidad) <= 50),
 		CONSTRAINT PK_DomicilioID PRIMARY KEY (id),
 		CONSTRAINT FK_Domicilio_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -187,7 +211,9 @@ BEGIN
 		[plan]				VARCHAR(30),
 
 		
-		CONSTRAINT Ck_PrestadorNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_PrestadorNombre	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+											AND	LEN(nombre) <= 30),
+		CONSTRAINT Ck_PrestadorPlan		CHECK(LEN([plan]) <= 30),
 		CONSTRAINT PK_PrestadorID PRIMARY KEY (id),
 		CONSTRAINT FK_Prestador_CoberturaID FOREIGN KEY (id_cobertura) REFERENCES gestion_paciente.Cobertura(id)
 	);
@@ -210,9 +236,10 @@ BEGIN
 		id		INT,
 		nombre	VARCHAR(11),-- Disponible, Atendido Ausente Cancelado
 
-		
-		CONSTRAINT Ck_EstadoTurnoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT PK_estadoID PRIMARY KEY(id)
+
+		CONSTRAINT Ck_EstadoTurnoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 11),
+		CONSTRAINT PK_EstadoTurnoID PRIMARY KEY(id)
 	)
 END
 GO
@@ -230,7 +257,10 @@ BEGIN
 	(
 		id		INT,
 		nombre	VARCHAR(11), -- Presencial Virtual
-		CONSTRAINT PK_tipoID PRIMARY KEY(id)
+
+		CONSTRAINT Ck_TipoTurno	CHECK(nombre IN ('Presencial', 'Virtual')
+											AND	LEN(nombre) <= 11),
+		CONSTRAINT PK_TipoTurnoID PRIMARY KEY(id)
 	)
 END
 GO
@@ -285,8 +315,12 @@ BEGIN
 		 provincia			VARCHAR(30),
 
 		
-		CONSTRAINT Ck_SedeNombre	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_SedeProvincia CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
+		CONSTRAINT Ck_SedeNombre	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 30),
+		CONSTRAINT Ck_SedeDireccion	CHECK(LEN(direccion) <= 30),
+		CONSTRAINT Ck_SedeLocalidad	CHECK(LEN(localidad) <= 30),
+		CONSTRAINT Ck_SedeProvincia CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0
+										AND LEN(provincia) <= 30),
 		CONSTRAINT PK_SedeID PRIMARY KEY (id)
 	 )
 END
@@ -306,7 +340,8 @@ BEGIN
 		nombre		VARCHAR(30),
 
 		
-		CONSTRAINT Ck_EspecialidadNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		CONSTRAINT Ck_EspecialidadNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+											AND LEN(nombre) <= 30),
 		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
 	 );
 END;
@@ -330,8 +365,10 @@ BEGIN
 		id_especialidad		INT,
 
 		
-		/*CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),*/
+		CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 30),
+		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0
+										AND LEN(apellido) <= 30),
 		CONSTRAINT PK_MedicoID			PRIMARY KEY (id),
 		CONSTRAINT FK_EspecialidadID	FOREIGN KEY (id_especialidad) REFERENCES gestion_sede.Especialidad(id)
 	 );
@@ -355,7 +392,9 @@ BEGIN
 		 dia				DATE,
 		 hora_inicio		TIME,
 
-	 CONSTRAINT PK_DiasxsedeID		PRIMARY KEY (id),
+	 CONSTRAINT CK_DiasXSedeHoraInicio CHECK(DATEPART(MINUTE, hora_inicio) IN (0, 15, 30, 45)),
+
+	 CONSTRAINT PK_DiasXSedeID		PRIMARY KEY (id),
 	 CONSTRAINT FK_SedeID			FOREIGN KEY (id_sede)			REFERENCES gestion_sede.Sede (id),
 	 CONSTRAINT FK_MedicoID			FOREIGN KEY (id_medico)			REFERENCES gestion_sede.Medico (id),
 	 CONSTRAINT FK_ReservaTurnoID	FOREIGN KEY (id_reserva_turno)	REFERENCES gestion_turno.ReservaTurno (id)

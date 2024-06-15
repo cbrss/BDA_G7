@@ -36,7 +36,7 @@ BEGIN
 	-- busco si esta autorizado el estudio
 	DECLARE @autorizado				BIT				= (SELECT autorizado FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica) 
 	-- busco nombre del estudio relacionado al codigo recibido
-	DECLARE @nombre_estudio			VARCHAR(100)	= (SELECT nombre_estudio FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica)
+	DECLARE @nombre_estudio			VARCHAR(100)	= (SELECT nombre	 FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica)
 
 	-- para el nombre del estudio y el plan recibido calculo importe y verifico si necesita autorizacion
 	DECLARE @importe				DECIMAL(10,2)

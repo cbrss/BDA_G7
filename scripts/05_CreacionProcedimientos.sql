@@ -17,84 +17,7 @@ GO
 
 --- CREACION STORE PROCEDURES PACIENTE
 -- ACTUALIZAR PACIENTE
-
-CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPaciente
-    @p_id                   INT,
-    @p_nombre               VARCHAR(30) = NULL,
-    @p_apellido             VARCHAR(30) = NULL,
-    @p_apellido_materno     VARCHAR(30) = NULL,
-    @p_fecha_nac            DATE		= NULL,
-    @p_tipo_doc             CHAR(5)		= NULL,
-    @p_num_doc              INT			= NULL,
-    @p_sexo                 VARCHAR(11) = NULL,
-    @p_genero               VARCHAR(9)	= NULL,
-    @p_nacionalidad         VARCHAR(30) = NULL,
-    @p_foto_perfil          VARCHAR(MAX)= NULL,
-    @p_mail                 VARCHAR(30) = NULL,
-    @p_tel_fijo             VARCHAR(15) = NULL,
-    @p_tel_alt              VARCHAR(15) = NULL,
-    @p_tel_laboral          VARCHAR(15) = NULL,
-	@p_borrado_logico		BIT			= NULL
-AS
-BEGIN
-
-	DECLARE
-		@nombre					VARCHAR(30),
-		@apellido				VARCHAR(30),
-		@apellido_materno		VARCHAR(30),
-		@fecha_nac				DATE,
-		@tipo_doc				CHAR(5),
-		@num_doc				INT,
-		@sexo					VARCHAR(11),
-		@genero					VARCHAR(9),
-		@nacionalidad			VARCHAR(30),
-		@foto_perfil			VARCHAR(max),
-		@mail					VARCHAR(30),
-		@tel_fijo				VARCHAR(15),
-		@tel_alt				VARCHAR(15),
-		@tel_laboral			VARCHAR(15),
-		@borrado_logico			BIT
-	SELECT
-		@nombre					= nombre,
-		@apellido				= apellido,
-		@apellido_materno		= apellido_materno,
-		@fecha_nac				= fecha_nac,
-		@tipo_doc				= tipo_doc,
-		@num_doc				= num_doc,
-		@sexo					= sexo,
-		@genero					= genero,
-		@nacionalidad			= nacionalidad,
-		@foto_perfil			= foto_perfil,
-		@mail					= mail,
-		@tel_fijo				= tel_fijo,
-		@tel_alt				= tel_alt,
-		@tel_laboral			= tel_laboral,
-		@borrado_logico			= borrado_logico
-	FROM gestion_paciente.Paciente
-	WHERE id = @p_id
-
-	UPDATE gestion_paciente.Paciente
-	SET	
-		nombre					= ISNULL(@p_nombre, @nombre),
-		apellido				= ISNULL(@p_apellido, @apellido),
-        apellido_materno		= ISNULL(@p_apellido_materno, @apellido_materno),
-        fecha_nac				= ISNULL(@p_fecha_nac, @fecha_nac),
-        tipo_doc				= ISNULL(@p_tipo_doc, @tipo_doc),
-        num_doc					= ISNULL(@p_num_doc, @num_doc),
-        sexo					= ISNULL(@p_sexo, @sexo),
-        genero					= ISNULL(@p_genero, @genero),
-        nacionalidad			= ISNULL(@p_nacionalidad, @nacionalidad),
-        foto_perfil				= ISNULL(@p_foto_perfil, @foto_perfil),
-		mail					= ISNULL(@p_mail, @mail),
-        tel_fijo				= ISNULL(@p_tel_fijo, @tel_fijo),
-        tel_alt					= ISNULL(@p_tel_alt, @tel_alt),
-        tel_laboral				= ISNULL(@p_tel_laboral, @tel_laboral),
-		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico),
-        fecha_actualizacion		= GETDATE(),
-		usr_actualizacion		= ORIGINAL_LOGIN()
-	WHERE id = @p_id
-END;
-GO
+ 
 
 -- INSERTAR PACIENTE
 -- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
@@ -126,6 +49,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id_identity			INT				= NULL OUTPUT 
 AS
 BEGIN
+	BEGIN TRY
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
 
@@ -163,7 +87,10 @@ BEGIN
 				@p_borrado_logico		= 0
     END
     ELSE IF @existe = 1									--	CASO: el paciente ya esta registrado 
+	BEGIN
+		PRINT 'Error: El paciente ya esta registrado'
 		RETURN
+	END
 	ELSE
     BEGIN												--	CASO: el operador de la clinica ingresa un nuevo paciente
         INSERT INTO gestion_paciente.Paciente (
@@ -206,9 +133,30 @@ BEGIN
         );
 		SET @p_id_identity = SCOPE_IDENTITY()
     END
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error	NVARCHAR(1000) = ERROR_MESSAGE()
+		DECLARE @mensaje	NVARCHAR(1000) 
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PacienteNombre', @Error) > 0 THEN 'Nombre invalido.'
+			WHEN CHARINDEX('Ck_PacienteApellido', @Error) > 0 THEN 'Apellido invalido.'
+			WHEN CHARINDEX('Ck_PacienteApellidoMaterno', @Error) > 0 THEN 'Apellido materno invalido.'
+			WHEN CHARINDEX('Ck_PacienteTipoDoc', @Error) > 0 THEN 'Tipo de documento invalido.'
+			WHEN CHARINDEX('Ck_PacienteSexo', @Error) > 0 THEN 'Sexo invalido.'
+			WHEN CHARINDEX('Ck_PacienteGenero', @Error) > 0 THEN 'Genero invalido.'
+			WHEN CHARINDEX('Ck_PacienteNacionalidad', @Error) > 0 THEN 'Nacionalidad invalida.'
+			WHEN CHARINDEX('Ck_PacienteMail', @Error) > 0 THEN 'Mail invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelFijo', @Error) > 0 THEN 'Telefono fijo invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelAlt', @Error) > 0 THEN 'Telefono alternativo invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelLaboral', @Error) > 0 THEN 'Telefono laboral invalido.'
+			ELSE ' No identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
-
 
 -- BORRAR PACIENTE
 
@@ -217,6 +165,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPaciente
 	@p_id INT
 AS
 BEGIN
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
 	UPDATE gestion_paciente.Paciente
 	SET	borrado_logico = 1
 	WHERE id = @p_id;
@@ -224,6 +181,7 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET	usr_actualizacion = ORIGINAL_LOGIN()
 	WHERE id = @p_id;
+
 END;
 GO
 
@@ -237,11 +195,12 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarEstudio
 	@p_id				INT,
 	@p_id_paciente		INT,
 	@p_fecha			DATE,
-	@p_nombre_estudio	VARCHAR(50),
+	@p_nombre	VARCHAR(50),
 	@p_doc_resultado	VARCHAR(max),
 	@p_img_resultado	VARCHAR(max)
 AS
 BEGIN
+	BEGIN TRY
 	IF EXISTS (
         SELECT 1
         FROM gestion_paciente.Estudio
@@ -255,23 +214,36 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO gestion_paciente.Estudio (
-            id,
-            id_paciente,
-            fecha,
-            nombre_estudio,
-            doc_resultado,
-            img_resultado
-        )
-        VALUES (
-            @p_id,
-            @p_id_paciente,
-            @p_fecha,
-            @p_nombre_estudio,
-            @p_doc_resultado,
-            @p_img_resultado
-        );
-    END
+			INSERT INTO gestion_paciente.Estudio (
+				id,
+				id_paciente,
+				fecha,
+				nombre,
+				doc_resultado,
+				img_resultado
+			)
+			VALUES (
+				@p_id,
+				@p_id_paciente,
+				@p_fecha,
+				@p_nombre,
+				@p_doc_resultado,
+				@p_img_resultado
+			);
+	END
+
+	END TRY
+
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstudioNombre', @Error) > 0 THEN 'Nombre de estudio invalido.'
+			ELSE 'Error no identificado'
+		END
+	PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -281,19 +253,29 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarEstudio
     @p_id                   INT,
     @p_id_paciente          INT,
     @p_fecha                DATE			= NULL,
-    @p_nombre_estudio       VARCHAR(50)	= NULL,
+    @p_nombre				VARCHAR(50)		= NULL,
     @p_doc_resultado        VARCHAR(MAX)	= NULL,
     @p_img_resultado        VARCHAR(MAX)	= NULL	
 AS
 BEGIN
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Estudio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
+	BEGIN TRY
 	DECLARE
 		@fecha				DATE,
-		@nombre_estudio		VARCHAR(50),
+		@nombre				VARCHAR(50),
 		@doc_resultado		VARCHAR(MAX),
 		@img_resultado		VARCHAR(MAX)
 	SELECT
 		@fecha				= fecha,
-		@nombre_estudio		= nombre_estudio,
+		@nombre				= nombre,
 		@doc_resultado		= doc_resultado,
 		@img_resultado		= img_resultado
 	FROM gestion_paciente.Estudio
@@ -302,10 +284,22 @@ BEGIN
     UPDATE gestion_paciente.Estudio
     SET
         fecha				= ISNULL(@p_fecha, @fecha),
-        nombre_estudio		= ISNULL(@p_nombre_estudio, @nombre_estudio),
+        nombre				= ISNULL(@p_nombre, @nombre),
         doc_resultado		= ISNULL(@p_doc_resultado, @doc_resultado),
         img_resultado		= ISNULL(@p_img_resultado, @img_resultado)
     WHERE id = @p_id;
+	END TRY
+
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstudioNombre', @Error) > 0 THEN 'Nombre de estudio invalido.'
+			ELSE 'Error no identificado'
+		END
+	PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -316,6 +310,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarEstudio
 	@p_id INT
 AS
 BEGIN
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Estudio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
 	UPDATE gestion_paciente.Estudio
 	SET	borrado_logico = 1
 	WHERE id = @p_id;
@@ -333,6 +336,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarUsuario
 	@p_contrasena		VARCHAR(30)
 AS
 BEGIN
+	BEGIN TRY
 	INSERT INTO gestion_paciente.Usuario (
 		id,
 		id_paciente,
@@ -349,6 +353,17 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET	usr_actualizacion = GETDATE()
 	WHERE id = @p_id_paciente
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_UsuarioContrasena', @Error) > 0 THEN 'Contraseña invalida.'
+			ELSE 'Error no identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
 
@@ -361,7 +376,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarUsuario
     @p_fecha_creacion	VARCHAR(MAX)	= NULL
 AS
 BEGIN
-
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Usuario
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El usuario no existe'
+		RETURN
+	END
+	BEGIN TRY
 	DECLARE
 		@id_paciente	INT,
 		@contrasena		VARCHAR(30)
@@ -381,6 +405,18 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET usr_actualizacion = GETDATE()
 	WHERE id = ISNULL(@p_id_paciente, @id_paciente)
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_UsuarioContrasena', @Error) > 0 THEN 'Contraseña invalida.'
+			ELSE 'Error no identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
 
@@ -391,6 +427,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarUsuario
 	@p_id INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Usuario
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El usuario no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Usuario
 	WHERE id = @p_id;
 END;
@@ -415,6 +460,8 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarDomicilio
     @p_localidad VARCHAR(50)
 AS
 BEGIN
+
+	BEGIN TRY
     INSERT INTO gestion_paciente.Domicilio (
         id_paciente,
         calle,
@@ -437,6 +484,21 @@ BEGIN
         @p_provincia,
         @p_localidad
     );
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_DomicilioCalle', @Error) > 0 THEN 'Calle invalida.'
+			WHEN CHARINDEX('Ck_DomicilioPais', @Error) > 0 THEN 'Pais invalido.'
+			WHEN CHARINDEX('Ck_DomicilioProvincia', @Error) > 0 THEN 'Provincia invalida.'
+			WHEN CHARINDEX('Ck_DomicilioLocalidad', @Error) > 0 THEN 'Localidad invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -454,6 +516,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarDomicilio
     @p_localidad    VARCHAR(50) = NULL
 AS
 BEGIN
+	
 
 	DECLARE
 		@calle          VARCHAR(30),
@@ -477,6 +540,7 @@ BEGIN
 	FROM gestion_paciente.Domicilio
 	WHERE id = @p_id
 
+	BEGIN TRY
 	UPDATE gestion_paciente.Domicilio
 	SET	
 		calle			= ISNULL(@p_calle, @calle),
@@ -488,6 +552,22 @@ BEGIN
 		provincia		= ISNULL(@p_provincia, @provincia),
 		localidad		= ISNULL(@p_localidad, @localidad)
 	WHERE id = @p_id
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_DomicilioCalle', @Error) > 0 THEN 'Calle invalida.'
+			WHEN CHARINDEX('Ck_DomicilioPais', @Error) > 0 THEN 'Pais invalido.'
+			WHEN CHARINDEX('Ck_DomicilioProvincia', @Error) > 0 THEN 'Provincia invalida.'
+			WHEN CHARINDEX('Ck_DomicilioLocalidad', @Error) > 0 THEN 'Localidad invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -498,6 +578,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.uBorrarDomicilio
 	@p_id INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Domicilio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El domicilio no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Domicilio
 	WHERE id = @p_id;
 END;
@@ -517,6 +606,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarCobertura
     @p_fecha_registro		DATE
 AS
 BEGIN
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id_paciente = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: Ya existe la cobertura ingresada'
+		RETURN
+	END
     INSERT INTO gestion_paciente.Cobertura (
         id,
         id_paciente,
@@ -545,6 +643,16 @@ END;
     @p_fecha_registro       DATE			= NULL
 AS
 BEGIN
+
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la cobertura ingresada'
+		RETURN
+	END
     DECLARE
         @id_paciente            INT,
         @imagen_credencial      VARCHAR(max),
@@ -576,6 +684,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarCobertura
 	@p_id INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la cobertura ingresada'
+		RETURN
+	END
 	DELETE gestion_paciente.Cobertura
 	WHERE id = @p_id;
 END;
