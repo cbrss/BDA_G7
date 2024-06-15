@@ -45,13 +45,20 @@ BEGIN
 		usr_actualizacion	VARCHAR(20),
 		borrado_logico		BIT DEFAULT 0,
 
-		CONSTRAINT Ck_PacienteNombre			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_PacienteApellido			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
-		CONSTRAINT Ck_PacienteApellidoMaterno	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0),
+		CONSTRAINT Ck_PacienteNombre			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+													AND LEN(nombre) <= 30
+												),
+		CONSTRAINT Ck_PacienteApellido			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0
+													AND LEN(apellido) <= 30
+												),
+		CONSTRAINT Ck_PacienteApellidoMaterno	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0
+													AND LEN(apellido) <= 30
+												),
 		CONSTRAINT Ck_PacienteTipoDoc			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
 		CONSTRAINT Ck_PacienteSexo				CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
 		CONSTRAINT Ck_PacienteGenero			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
 		CONSTRAINT Ck_PacienteNacion			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),
+		CONSTRAINT Ck_PacienteMail				CHECK(mail LIKE '%_@_%.__%'),
 		CONSTRAINT PK_PacienteID PRIMARY KEY (id)
 	);
 END;
