@@ -5,7 +5,7 @@
 		INTEGRANTES:
 			Cristian Raul Berrios Lima		42875289
 			Lautaro Da silva				42816815
-			Abigail Karina Peñafiel Huayta	41913506
+			Abigail Karina PeÃ±afiel Huayta	41913506
 
 		FECHA DE ENTREGA: 14/6/2024
 */
@@ -29,7 +29,38 @@ BEGIN
     SET @r_disponiblidad = CAST(RAND() + 0.5 AS INT)
 END
 GO
+	
+-- Mas que este, me parece coherente que se consulte si un medico con tal especialidad en tal sede y fecha
+-- esta disponible en esa hora, entiendo que DiasXSede tiene registrado las reservas de turno que tiene cada medico
+-- en dichas sedes. Falta probarlo
+	
+CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidadHoraria (
+	@p_id_medico			INT, 
+	@p_id_especialidad		INT,
+	@p_id_sede_atencion		INT,
+	@p_fecha				DATE,
+	@p_hora					TIME,
+	@r_disponiblidad		INT OUTPUT
+)
+AS
+BEGIN
+	DECLARE @hora_fin TIME
+	SET @hora_fin = DATEADD(MINUTE, 15, @p_hora) -- suma 15 minutos a la Hora
 
+	IF EXISTS (
+		Select 'a' from gestion_sede.Medico Join gestion_sede.DiasXSede on id = id_medico
+		group by id
+		having id_especialidad = @p_id_especialidad
+		and id_sede = @p_id_sede_atencion
+		and dia = @p_fecha
+		and hora_inicio between @p_hora and @hora_fin
+		)
+		SET @r_disponiblidad = 1
+	ELSE
+		SET @r_disponiblidad = 0
+END
+go
+	
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
 
@@ -69,10 +100,10 @@ BEGIN
 			SET @numero = SUBSTRING(@numero, 1, @posicion_ini - 1)
 		END
 	END
-	ELSE IF PATINDEX('%Nº%', @p_domicilio) > 0	-- CASO: 51 Nº 456
+	ELSE IF PATINDEX('%NÂº%', @p_domicilio) > 0	-- CASO: 51 NÂº 456
 	BEGIN
-		SET @calle	= SUBSTRING(@p_domicilio, 1, CHARINDEX('Nº', @p_domicilio) - 1)					-- el -1 es por el ultimo espacio del KM 
-		SET @numero = SUBSTRING(@p_domicilio, CHARINDEX('Nº', @p_domicilio) + 3, LEN(@p_domicilio))	-- +3 es porque al encontrar 'KM 2' necesitamos movernos hacia el inicio del '2' 
+		SET @calle	= SUBSTRING(@p_domicilio, 1, CHARINDEX('NÂº', @p_domicilio) - 1)					-- el -1 es por el ultimo espacio del KM 
+		SET @numero = SUBSTRING(@p_domicilio, CHARINDEX('NÂº', @p_domicilio) + 3, LEN(@p_domicilio))	-- +3 es porque al encontrar 'KM 2' necesitamos movernos hacia el inicio del '2' 
 		
 	END
 	ELSE																							-- CASO: AVENIDA 9 DE JULIO 857 | Av. 520 2650
