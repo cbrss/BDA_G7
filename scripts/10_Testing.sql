@@ -111,3 +111,91 @@ EXEC gestion_sede.usp_ImportarMedico
 	@p_ruta = '../lote_de_pruebas/lote_de_prueba_medico.csv'
 
 
+-- LOTE TIPO TURNO
+
+EXEC gestion_turno.InsertarTipoTurno 10, 'Presencial';
+go
+EXEC gestion_turno.InsertarTipoTurno 11, 'Virtual';
+go
+
+-- id_tipo_turno ya existe
+EXEC gestion_turno.InsertarTipoTurno 11, 'repetido';
+go
+-- tipo_turno ya existe
+EXEC gestion_turno.InsertarTipoTurno 8, 'Presencial';
+go
+
+-- No debe haber otro tipo de turno
+EXEC gestion_turno.InsertarTipoTurno 11, 'a distancia';
+go
+-- No debe haber numeros
+EXEC gestion_turno.InsertarTipoTurno 11, 'asitencia45';
+go
+
+-- LOTE ESTADO TURNO
+
+EXEC gestion_turno.InsertarEstadoTurno 1, 'Disponible';
+go
+EXEC gestion_turno.InsertarEstadoTurno 2, 'Cancelado';
+go
+EXEC gestion_turno.InsertarEstadoTurno 3, 'Ausente';
+go
+EXEC gestion_turno.InsertarEstadoTurno 4, 'Atendido';
+go
+
+-- id_estado ya existe
+EXEC gestion_turno.InsertarEstadoTurno 3, 'espera';
+go
+-- estado ya existe
+EXEC gestion_turno.InsertarEstadoTurno 8, 'Ausente';
+go
+-- No admite numeros
+EXEC gestion_turno.InsertarEstadoTurno 7, '678ahu';
+go
+
+
+-- LOTE RESERVA TURNO
+
+EXEC gestion_turno.InsertarReservaTurno 77, '2024-05-18', '9:45', 1500, 1, 11;
+go
+EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-10', '20:15', 1556, 1, 10;
+go
+-- Cambia estado a Cancelado, podrá crearse otra con id 78
+EXEC gestion_turno.ActualizarReservaTurno 78, NULL, NULL, NULL, 2, NULL;
+go
+
+
+EXEC gestion_turno.InsertarReservaTurno 80, '2024-03-02', '12:15', 2135, 1, 10;
+go
+EXEC gestion_turno.InsertarReservaTurno 80, '2024-04-06', '13:00', 4890, 3, 10;
+go
+-- Nueva reserva con fecha hora y estado del que se canceló
+EXEC gestion_turno.InsertarReservaTurno 81, '2024-03-10', '20:15', 3440, 1, 10;
+go
+
+
+-- El paciente ya tiene turno en esa fecha y hora
+EXEC gestion_turno.InsertarReservaTurno 82, '2024-03-02', '12:15', 2135, 1, 10;
+go
+
+-- id_sede (desde 100 en adelante)
+-- id_medico (desde 500 hasta 599)
+-- id_especialidad (600 en adelante)
+-- id_paciente (desde 1500 hasta 5000)
+	
+-- El paciente no existe
+EXEC gestion_turno.InsertarReservaTurno 83, '2024-03-02', '12:30', 1300, 1, 10;
+go
+-- id ya existe
+EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-06', '9:00', 1500, 1, 11;
+go
+-- id_estado no existe
+EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1500, 5, 11;
+go
+-- id_tipo_turno no existe
+EXEC gestion_turno.InsertarReservaTurno 85, '2024-03-06', '10:00', 1500, 1, 49;
+go
+-- fecha formato incorrecto?
+EXEC gestion_turno.InsertarReservaTurno 86, '18-05-2024', '10:30', 1500, 1, 11;
+go
+
