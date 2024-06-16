@@ -30,95 +30,8 @@ BEGIN
 END
 GO
 
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE PACIENTES
 
-CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
-	@p_nombre				VARCHAR(30),
-	@p_apellido				VARCHAR(30),
-	@p_fecha_nac			DATE,
-	@p_tipo_doc				CHAR(5),
-	@p_num_doc				INT,
-	@p_sexo					VARCHAR(11),
-	@p_genero				VARCHAR(9),
-	@p_nacionalidad			VARCHAR(20)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS (
-		SELECT 1
-		FROM gestion_paciente.Paciente
-		WHERE nombre			= @p_nombre
-			AND	apellido		= @p_apellido
-			AND	fecha_nac		= @p_fecha_nac
-			AND tipo_doc		= @p_tipo_doc
-			AND num_doc			= @p_num_doc
-			AND nacionalidad	= @p_nacionalidad
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE MEDICOS
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteMedico (
-	@p_nombre			VARCHAR(30),
-	@p_apellido			VARCHAR(30),
-	@p_matricula		INT,
-	@p_id_especialidad	INT
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Medico
-		WHERE nombre = @p_nombre
-			AND	apellido = @p_apellido
-			AND	matricula = @p_matricula
-			AND id_especialidad = @p_id_especialidad
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(30)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Especialidad
-		WHERE nombre			= @p_nombre
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
+--- FUNCIONES AUXILIARES PARA IMPORTACION
 
 CREATE OR ALTER FUNCTION gestion_Sede.BuscarIdEspecialidad (@p_nombre VARCHAR(30))
 RETURNS INT
@@ -131,38 +44,6 @@ BEGIN
 END
 GO
 
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE SEDES
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteSede (
-	@p_nombre			VARCHAR(30),
-	@p_direccion		VARCHAR(30),
-	@p_localidad		VARCHAR(30),
-	@p_provincia		VARCHAR(30)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre = @p_nombre
-			AND	direccion = @p_direccion
-			AND	localidad = @p_localidad
-			AND provincia = @p_provincia
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
---- FUNCIONES AUXILIARES PARA IMPORTACION
 
 CREATE OR ALTER FUNCTION gestion_paciente.ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
