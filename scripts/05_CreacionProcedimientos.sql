@@ -716,8 +716,10 @@ BEGIN
 		WHERE [plan] = @p_plan AND nombre = @p_nombre
 	)
 	BEGIN
+		PRINT 'Error: El prestador ya fue ingresado'
 		RETURN
 	END
+	BEGIN TRY
 
 	IF @p_id_cobertura IS NULL										--	CASO: se importa prestadores y estos no tienen dichos ids
 	BEGIN
@@ -741,6 +743,20 @@ BEGIN
         @p_nombre,
         @p_plan
     );
+
+	END TRY
+		BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PrestadorNombre', @Error) > 0 THEN 'Nombre del prestador invalido.'
+			WHEN CHARINDEX('Ck_PrestadorPlan', @Error) > 0 THEN 'Plan del prestador invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -754,6 +770,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPrestador
     @p_plan				VARCHAR(30)		= NULL
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Prestador
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El prestador no existe'
+		RETURN
+	END
     DECLARE
         @id_cobertura		INT,
         @nombre_prestador	VARCHAR(30),
@@ -765,13 +790,27 @@ BEGIN
         @plan_prestador		= [plan]
     FROM gestion_paciente.Prestador
     WHERE id = @p_id
-
+	
+	BEGIN TRY
     UPDATE gestion_paciente.Prestador
     SET
         id_cobertura		= ISNULL(@p_id_cobertura, @id_cobertura),
         nombre				= ISNULL(@p_nombre, @nombre_prestador),
         [plan]				= ISNULL(@p_plan, @plan_prestador)
     WHERE id = @p_id
+	END TRY
+		BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PrestadorNombre', @Error) > 0 THEN 'Nombre del prestador invalido.'
+			WHEN CHARINDEX('Ck_PrestadorPlan', @Error) > 0 THEN 'Plan del prestador invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -782,6 +821,15 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPrestador
 	@p_id INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Prestador
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El prestador no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Prestador
 	WHERE id = @p_id;
 END;
@@ -803,6 +851,15 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarSede
 	@p_provincia	VARCHAR(30) = NULL
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La sede no existe'
+		RETURN
+	END
 
 	DECLARE
 		@nombre		INT,
@@ -816,14 +873,29 @@ BEGIN
 		@provincia	= provincia
 	FROM gestion_sede.Sede
 	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.Sede
+		SET
+			nombre			= ISNULL(@p_nombre, @nombre),
+			direccion		= ISNULL(@p_direccion, @direccion),
+			localidad		= ISNULL(@p_localidad, @localidad),
+			provincia		= ISNULL(@p_provincia, @provincia)
+		WHERE id = @p_id;
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
-    UPDATE gestion_sede.Sede
-    SET
-        nombre			= ISNULL(@p_nombre, @nombre),
-        direccion		= ISNULL(@p_direccion, @direccion),
-        localidad		= ISNULL(@p_localidad, @localidad),
-        provincia		= ISNULL(@p_provincia, @provincia)
-    WHERE id = @p_id;
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_SedeNombre', @Error) > 0 THEN 'Nombre de la sede invalido.'
+			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Dirección de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeLocalidad', @Error) > 0 THEN 'Localidad de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeProvincia', @Error) > 0 THEN 'Provincia de la sede invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+END CATCH
 END
 GO
 
@@ -837,38 +909,30 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarSede
 	@p_provincia	VARCHAR(30)
 AS
 BEGIN
-	DECLARE @existe BIT
-
-	EXEC @existe = gestion_sede.ExisteSede
-		@p_nombre		= @p_nombre,
-		@p_direccion	= @p_direccion,
-		@p_localidad	= @p_localidad,
-		@p_provincia	= @p_provincia
-
-	IF @existe = 1
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE direccion = @p_direccion
+		AND localidad = @p_localidad
+		AND provincia = @p_provincia
+	)
 	BEGIN
-		EXEC gestion_sede.ActualizarSede
-			@p_id			= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_direccion	= @p_direccion,
-			@p_localidad	= @p_localidad,
-			@p_provincia	= @p_provincia
+		PRINT 'Error: La sede ya existe'
+		RETURN
 	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Sede (
-			nombre,
-			direccion,
-			localidad,
-			provincia
-		)
-		VALUES (
-			@p_nombre,
-			@p_direccion,
-			@p_localidad,
-			@p_provincia
-		)
-	END
+	INSERT INTO gestion_sede.Sede (
+		nombre,
+		direccion,
+		localidad,
+		provincia
+	)
+	VALUES (
+		@p_nombre,
+		@p_direccion,
+		@p_localidad,
+		@p_provincia
+	)
+	
 END
 GO	
 
@@ -878,6 +942,15 @@ CREATE OR ALTER PROCEDURE gestion_sede.BorrarSede
 	@p_id	INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La sede no existe'
+		RETURN
+	END
 	DELETE gestion_sede.Sede 
 	WHERE id = @p_id	
 END
@@ -897,6 +970,16 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarMedico
 	@p_id_especialidad	INT			= NULL
 AS
 BEGIN
+
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe el medico'
+		RETURN
+	END
 	DECLARE
 		@nombre				VARCHAR(30),
 		@apellido			VARCHAR(30),
@@ -910,13 +993,27 @@ BEGIN
 	FROM gestion_sede.Medico
 	WHERE id = @p_id
 
-	UPDATE	gestion_sede.Medico
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre),
-		apellido		= ISNULL(@p_apellido, @apellido),
-		matricula		= ISNULL(@p_matricula, @matricula),
-		id_especialidad = ISNULL(@p_id_especialidad, @id_especialidad)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE	gestion_sede.Medico
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre),
+			apellido		= ISNULL(@p_apellido, @apellido),
+			matricula		= ISNULL(@p_matricula, @matricula),
+			id_especialidad = ISNULL(@p_id_especialidad, @id_especialidad)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_MedicoNombre', @Error) > 0 THEN 'Nombre del medico invalido.'
+			WHEN CHARINDEX('Ck_MedicoApellido', @Error) > 0 THEN 'Apellido del medico invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -930,38 +1027,45 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarMedico
 	@p_id_especialidad	INT
 AS
 BEGIN
-	DECLARE @existe	BIT
-	EXEC @existe = gestion_sede.ExisteMedico
-		@p_nombre			= @p_nombre,
-		@p_apellido			= @p_apellido,
-		@p_matricula		= @p_matricula,
-		@p_id_especialidad	= @p_id_especialidad
-
-	IF @existe = 1
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE nombre = @p_nombre
+		AND apellido = @p_apellido
+		AND matricula = @p_matricula
+		AND id_especialidad = @p_id_especialidad
+	)
 	BEGIN
-		EXEC gestion_sede.ActualizarMedico
-			@p_id				= @p_id,
-			@p_nombre			= @p_nombre,
-			@p_apellido			= @p_apellido,
-			@p_matricula		= @p_matricula,
-			@p_id_especialidad	= @p_id_especialidad
+		PRINT 'Error: Ya existe el medico'
+		RETURN
 	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Medico (
-			nombre,
-			apellido,
-			matricula,
-			id_especialidad
-		)
-		VALUES (
-			@p_nombre,
-			@p_apellido,
-			@p_matricula,
-			@p_id_especialidad
-		)
 
-	END
+	BEGIN TRY
+	INSERT INTO gestion_sede.Medico (
+		nombre,
+		apellido,
+		matricula,
+		id_especialidad
+	)
+	VALUES (
+		@p_nombre,
+		@p_apellido,
+		@p_matricula,
+		@p_id_especialidad
+	)
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_MedicoNombre', @Error) > 0 THEN 'Nombre del medico invalido.'
+			WHEN CHARINDEX('Ck_MedicoApellido', @Error) > 0 THEN 'Apellido del medico invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -970,6 +1074,14 @@ GO
 CREATE OR ALTER PROCEDURE gestion_sede.BorrarMedico
 	@p_id INT
 AS
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe el medico'
+	END
 	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
 GO
 
@@ -986,7 +1098,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarDiasXSede
 	@p_dia					DATE, 
 	@p_hora_inicio			TIME
 AS
-	IF(DATEPART(MINUTE, @p_hora_inicio) IN (0,15,30,45))
+	BEGIN TRY
 		INSERT INTO gestion_sede.DiasXSede(
 			id,
 			id_sede,
@@ -1003,6 +1115,18 @@ AS
 			@p_dia,
 			@p_hora_inicio
 		);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_DiasXSedeHoraInicio', @Error) > 0 THEN 'Hora de inicio invalida. Debe ser en punto o en cuartos (00, 15, 30, 45).'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 GO	
 
 -- ACTUALIZAR DIASXSEDE
@@ -1016,7 +1140,15 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarDiasXSede
 	@p_hora_inicio		TIME = NULL
 AS
 BEGIN
-
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.DiasXSede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe DiasXSede ingresado'
+		RETURN
+	END
 	DECLARE
 		@id_sede			INT,
 		@id_medico			INT,
@@ -1030,26 +1162,46 @@ BEGIN
 		@hora_inicio	= hora_inicio
 	FROM gestion_sede.DiasXSede
 	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.DiasXSede
+		SET
+			id_sede			= ISNULL(@p_id_sede, @id_sede),
+			id_medico		= ISNULL(@p_id_medico, @id_medico),
+			dia				= ISNULL(@p_dia, @dia),
+			hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
+		WHERE id = @p_id;
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
-    UPDATE gestion_sede.DiasXSede
-    SET
-        id_sede			= ISNULL(@p_id_sede, @id_sede),
-        id_medico		= ISNULL(@p_id_medico, @id_medico),
-        dia				= ISNULL(@p_dia, @dia),
-        hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
-    WHERE id = @p_id;
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_DiasXSedeHoraInicio', @Error) > 0 THEN 'Hora de inicio invalida. Debe ser en punto o en cuartos (00, 15, 30, 45).'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+END CATCH
 END
 GO
 
 -- BORRAR DIASXSEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.BorrarDias
-	@p_sede		INT,
-	@p_medico	INT
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarDiasXSede
+	@p_id INT
 AS
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.DiasXSede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe DiasXSede ingresado'
+		RETURN
+	END
+
 	DELETE gestion_sede.Diasxsede 
-	WHERE id_sede = @p_sede 
-		AND id_medico = @p_medico;		
+	WHERE id = @p_id	
 GO
 
 ---- CREACION STORE PROCEDURES ESPECIALIDAD
@@ -1062,19 +1214,36 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarEspecialidad
 AS
 BEGIN
 
-	IF NOT EXISTS(
+	IF EXISTS(
 		SELECT 1
 		FROM gestion_sede.Especialidad
 		WHERE nombre = @p_nombre
 	)
 	BEGIN
+		PRINT 'Error: Ya existe la especialidad ingresada'
+		RETURN
+	END
+
+	BEGIN TRY
 		INSERT INTO gestion_sede.Especialidad(
 			nombre
 		) 
 		VALUES (
 			@p_nombre
 		);
-	END
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EspecialidadNombre', @Error) > 0 THEN 'Nombre de la especialidad invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
+	
 
 	
 END
@@ -1082,11 +1251,21 @@ GO
 
 --- ACTUALIZAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_sede.ActualizarEspecialidad
 	@p_id		INT,
 	@p_nombre	VARCHAR(30) = NULL
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la especialidad ingresada'
+		RETURN
+	END
+
 	DECLARE
 		@nombre         VARCHAR(30)
 
@@ -1095,19 +1274,41 @@ BEGIN
 	FROM gestion_sede.Especialidad
 	WHERE id = @p_id
 
-	UPDATE gestion_sede.Especialidad
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.Especialidad
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EspecialidadNombre', @Error) > 0 THEN 'Nombre de la especialidad invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
 --- BORRAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.BorrarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarEspecialidad
 	@p_id		INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la especialidad ingresada'
+		RETURN
+	END
 	DELETE gestion_sede.Especialidad
 	WHERE id = @p_id
 END
@@ -1123,7 +1324,30 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarEstadoTurno
 	@p_nombre	VARCHAR(11)
 AS
 BEGIN
-	INSERT INTO gestion_turno.EstadoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE nombre = @p_nombre
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno ya existe'
+		RETURN
+	END
+	BEGIN TRY
+		INSERT INTO gestion_turno.EstadoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstadoTurnoNombre', @Error) > 0 THEN 'Nombre del estado de turno invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1134,6 +1358,16 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEstadoTurno
 	@p_nombre	VARCHAR(11) = NULL
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+
 	DECLARE
 		@nombre         VARCHAR(11)
 
@@ -1142,10 +1376,24 @@ BEGIN
 	FROM gestion_turno.EstadoTurno
 	WHERE id = @p_id
 
-	UPDATE gestion_turno.EstadoTurno
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+
+		UPDATE gestion_turno.EstadoTurno
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstadoTurnoNombre', @Error) > 0 THEN 'Nombre del estado de turno invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1154,6 +1402,15 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarEstadoTurno
 	@p_id		INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM  gestion_turno.EstadoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
 	DELETE gestion_turno.EstadoTurno
 	WHERE id = @p_id
 END
@@ -1167,7 +1424,17 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarTipoTurno
     @p_id           INT,
     @p_nombre       VARCHAR(11) = NULL
 AS
-BEGIN
+	BEGIN
+		IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+	
 	DECLARE
 		@nombre         VARCHAR(11)
 
@@ -1176,11 +1443,23 @@ BEGIN
 	FROM gestion_turno.TipoTurno
 	WHERE id = @p_id
 
-	UPDATE gestion_turno.TipoTurno
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_turno.TipoTurno
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_TipoTurno', @Error) > 0 THEN 'Nombre del tipo de turno invalido. Debe ser "Presencial" o "Virtual".'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -1191,6 +1470,17 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarTipoTurno
 	@p_nombre	VARCHAR(20)
 AS
 BEGIN
+
+	IF EXISTS(
+	SELECT 1
+	FROM gestion_turno.TipoTurno
+	WHERE nombre = @p_nombre
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno ya existe'
+		RETURN
+	END
+
 	INSERT INTO gestion_turno.TipoTurno(id, nombre) VALUES (@p_id, @p_nombre);
 END
 GO
@@ -1201,6 +1491,16 @@ CREATE OR ALTER PROCEDURE gestion_turno.EliminarTipoTurno
 	@p_id		INT
 AS
 BEGIN
+	IF NOT EXISTS(
+	SELECT 1
+	FROM gestion_turno.TipoTurno
+	WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DELETE gestion_turno.TipoTurno
 	WHERE id = @p_id
 
@@ -1221,6 +1521,44 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
 	@p_borrado_logico			BIT		= NULL
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La reserva no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DECLARE
 		@fecha					DATE,
 		@hora					TIME,
@@ -1259,12 +1597,43 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
 	@p_fecha					DATE,
 	@p_hora						TIME,
 	@p_id_paciente				INT,
-	@p_id_medico				INT	= NULL,
-	@p_id_especialidad			INT	= NULL,
-	@p_id_sede_atencion			INT	= NULL,
+	@p_id_medico				INT,
+	@p_id_especialidad			INT,
+	@p_id_sede_atencion			INT,
+	@p_id_estado_turno			INT,
 	@p_id_tipo_turno			INT
 AS
 BEGIN
+
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DECLARE @disponiblidad	INT
 	DECLARE @id_estado		INT
 	DECLARE @existe			BIT
@@ -1325,6 +1694,15 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarReservaTurno
 	@p_id	INT
 AS
 BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la reserva ingresada'
+		RETURN
+	END
 	UPDATE gestion_turno.ReservaTurno
 	SET borrado_logico = 1
 	WHERE id = @p_id
