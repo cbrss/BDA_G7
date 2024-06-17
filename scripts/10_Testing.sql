@@ -129,7 +129,6 @@ EXEC gestion_turno.InsertarTipoTurno 8, 'Presencial';
 go
 EXEC gestion_turno.InsertarTipoTurno 9, 'Presencial';
 go
-
 DELETE FROM gestion_turno.TipoTurno WHERE id = 8
 DELETE FROM gestion_turno.TipoTurno WHERE id = 9
 
