@@ -49,6 +49,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id_identity			INT				= NULL OUTPUT 
 AS
 BEGIN
+	set nocount on
 	BEGIN TRY
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
@@ -165,6 +166,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPaciente
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Paciente
@@ -200,6 +202,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarEstudio
 	@p_img_resultado	VARCHAR(max)
 AS
 BEGIN
+	set nocount on
 	BEGIN TRY
 	IF EXISTS (
         SELECT 1
@@ -258,6 +261,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarEstudio
     @p_img_resultado        VARCHAR(MAX)	= NULL	
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Estudio
@@ -310,6 +314,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarEstudio
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Estudio
@@ -336,6 +341,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarUsuario
 	@p_contrasena		VARCHAR(30)
 AS
 BEGIN
+	set nocount on
 	BEGIN TRY
 	INSERT INTO gestion_paciente.Usuario (
 		id,
@@ -376,6 +382,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarUsuario
     @p_fecha_creacion	VARCHAR(MAX)	= NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Usuario
@@ -427,6 +434,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarUsuario
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Usuario
@@ -460,7 +468,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarDomicilio
     @p_localidad VARCHAR(50)
 AS
 BEGIN
-
+	set nocount on
 	BEGIN TRY
     INSERT INTO gestion_paciente.Domicilio (
         id_paciente,
@@ -516,7 +524,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarDomicilio
     @p_localidad    VARCHAR(50) = NULL
 AS
 BEGIN
-	
+	set nocount on
 
 	DECLARE
 		@calle          VARCHAR(30),
@@ -578,6 +586,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.uBorrarDomicilio
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Domicilio
@@ -606,6 +615,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarCobertura
     @p_fecha_registro		DATE
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Cobertura
@@ -643,7 +653,7 @@ END;
     @p_fecha_registro       DATE			= NULL
 AS
 BEGIN
-
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Cobertura
@@ -684,6 +694,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarCobertura
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Cobertura
@@ -709,7 +720,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPrestador
     @p_plan				VARCHAR(30)
 AS
 BEGIN
-
+	set nocount on
 	IF EXISTS (														--	CASO: se ingresa duplicado
 		SELECT 1
 		FROM gestion_paciente.Prestador
@@ -770,6 +781,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPrestador
     @p_plan				VARCHAR(30)		= NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Prestador
@@ -821,6 +833,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPrestador
 	@p_id INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Prestador
@@ -851,6 +864,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarSede
 	@p_provincia	VARCHAR(30) = NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Sede
@@ -909,6 +923,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarSede
 	@p_provincia	VARCHAR(30)
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_sede.Sede
@@ -942,6 +957,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.BorrarSede
 	@p_id	INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Sede
@@ -970,7 +986,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarMedico
 	@p_id_especialidad	INT			= NULL
 AS
 BEGIN
-
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Medico
@@ -1027,6 +1043,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarMedico
 	@p_id_especialidad	INT
 AS
 BEGIN
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_sede.Medico
@@ -1074,6 +1091,7 @@ GO
 CREATE OR ALTER PROCEDURE gestion_sede.BorrarMedico
 	@p_id INT
 AS
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Medico
@@ -1098,6 +1116,8 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarDiasXSede
 	@p_dia					DATE, 
 	@p_hora_inicio			TIME
 AS
+BEGIN
+	set nocount on
 	BEGIN TRY
 		INSERT INTO gestion_sede.DiasXSede(
 			id,
@@ -1127,6 +1147,7 @@ AS
 
 		PRINT 'Error en el campo: ' + @mensaje;
 	END CATCH
+END
 GO	
 
 -- ACTUALIZAR DIASXSEDE
@@ -1140,6 +1161,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarDiasXSede
 	@p_hora_inicio		TIME = NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.DiasXSede
@@ -1190,6 +1212,8 @@ GO
 CREATE OR ALTER PROCEDURE gestion_sede.BorrarDiasXSede
 	@p_id INT
 AS
+BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.DiasXSede
@@ -1202,6 +1226,7 @@ AS
 
 	DELETE gestion_sede.Diasxsede 
 	WHERE id = @p_id	
+END
 GO
 
 ---- CREACION STORE PROCEDURES ESPECIALIDAD
@@ -1213,7 +1238,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarEspecialidad
 	@p_nombre	VARCHAR(30)
 AS
 BEGIN
-
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_sede.Especialidad
@@ -1256,6 +1281,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarEspecialidad
 	@p_nombre	VARCHAR(30) = NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Especialidad
@@ -1300,6 +1326,7 @@ CREATE OR ALTER PROCEDURE gestion_sede.BorrarEspecialidad
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_sede.Especialidad
@@ -1324,7 +1351,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarEstadoTurno
 	@p_nombre	VARCHAR(11)
 AS
 BEGIN
-
+	set nocount on
 	IF EXISTS(
 		SELECT 1
 		FROM gestion_turno.EstadoTurno
@@ -1358,6 +1385,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEstadoTurno
 	@p_nombre	VARCHAR(11) = NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_turno.EstadoTurno
@@ -1402,6 +1430,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarEstadoTurno
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM  gestion_turno.EstadoTurno
@@ -1424,8 +1453,9 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarTipoTurno
     @p_id           INT,
     @p_nombre       VARCHAR(11) = NULL
 AS
-	BEGIN
-		IF NOT EXISTS(
+BEGIN
+	set nocount on
+	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_turno.TipoTurno
 		WHERE id = @p_id
@@ -1470,7 +1500,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarTipoTurno
 	@p_nombre	VARCHAR(20)
 AS
 BEGIN
-
+	set nocount on
 	IF EXISTS(
 	SELECT 1
 	FROM gestion_turno.TipoTurno
@@ -1503,6 +1533,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.EliminarTipoTurno
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 	SELECT 1
 	FROM gestion_turno.TipoTurno
@@ -1533,6 +1564,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
 	@p_borrado_logico			BIT		= NULL
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_turno.ReservaTurno
@@ -1616,7 +1648,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
 	@p_id_tipo_turno			INT
 AS
 BEGIN
-
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_paciente.Paciente
@@ -1706,6 +1738,7 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarReservaTurno
 	@p_id	INT
 AS
 BEGIN
+	set nocount on
 	IF NOT EXISTS(
 		SELECT 1
 		FROM gestion_turno.ReservaTurno
