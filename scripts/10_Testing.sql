@@ -62,7 +62,7 @@ DECLARE @p_id_especialidad INT = @id_especialidad;
 DECLARE @p_id_sede_atencion INT = @id_sede; 
 DECLARE @p_id_tipo_turno INT = 1000; 
 
-EXEC gestion_turno.usp_InsertarReservaTurno
+EXEC gestion_turno.InsertarReservaTurno
 	@p_id = @p_id,
 	@p_fecha = @p_fecha,
 	@p_hora = @p_hora,
@@ -88,33 +88,36 @@ un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, 
 del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
 el importe a facturarle al paciente.
 */
-EXEC gestion_paciente.usp_AutorizarEstudio 
+EXEC gestion_paciente.AutorizarEstudio 
 	@p_id_estudio		= 41365,
 	@p_dni_paciente		= 4268398306,
 	@p_plan_prestador	=  'Jovenes',	
-	@p_ruta				= '../lote_de_pruebas/lote_de_prueba_autorizar.json',	
+	@p_ruta				= '../casos_de_prueba/lote_de_prueba_autorizar.json',	
 	@p_respuesta		= '';
 
 /*
 Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "lote_de_pruebas"
 */
-EXEC gestion_paciente.usp_ImportarPacientes
-	@p_ruta	= '../lote_de_pruebas/lote_de_prueba_paciente.csv'
+EXEC gestion_paciente.ImportarPacientes
+	@p_ruta	= '../casos_de_prueba/Pacientes.csv'
 
-EXEC  gestion_paciente.usp_ImportarPrestadores
-	@p_ruta = '../lote_de_pruebas/lote_de_prueba_prestador.csv'
+EXEC  gestion_paciente.ImportarPrestadores
+	@p_ruta = '../casos_de_prueba/Prestador.csv'
 
-EXEC gestion_sede.usp_ImportarSede
-	@p_ruta = '../lote_de_pruebas/lote_de_prueba_sede.csv'
+EXEC gestion_sede.ImportarSede
+	@p_ruta = '../casos_de_prueba/Sedes.csv'
 
-EXEC gestion_sede.usp_ImportarMedico
-	@p_ruta = '../lote_de_pruebas/lote_de_prueba_medico.csv'
+EXEC gestion_sede.ImportarMedico
+	@p_ruta = '../casos_de_prueba/Medicos.csv'
 
 
 -- LOTE TIPO TURNO
 
 EXEC gestion_turno.InsertarTipoTurno 10, 'Presencial';
 go
+SELECT * FROM gestion_turno.TipoTurno where id = 10
+DELETE FROM gestion_turno.TipoTurno WHERE id = 10
+
 EXEC gestion_turno.InsertarTipoTurno 11, 'Virtual';
 go
 
@@ -124,6 +127,11 @@ go
 -- tipo_turno ya existe
 EXEC gestion_turno.InsertarTipoTurno 8, 'Presencial';
 go
+EXEC gestion_turno.InsertarTipoTurno 9, 'Presencial';
+go
+
+DELETE FROM gestion_turno.TipoTurno WHERE id = 8
+DELETE FROM gestion_turno.TipoTurno WHERE id = 9
 
 -- No debe haber otro tipo de turno
 EXEC gestion_turno.InsertarTipoTurno 11, 'a distancia';

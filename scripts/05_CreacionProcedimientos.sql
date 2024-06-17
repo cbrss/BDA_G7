@@ -1480,8 +1480,20 @@ BEGIN
 		PRINT 'Error: El tipo de turno ya existe'
 		RETURN
 	END
+	BEGIN TRY
+		INSERT INTO gestion_turno.TipoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
-	INSERT INTO gestion_turno.TipoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_TipoTurno', @Error) > 0 THEN 'Nombre del tipo de turno invalido. Debe ser "Presencial" o "Virtual".'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
