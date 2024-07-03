@@ -193,4 +193,46 @@ go
 Select * from gestion_turno.EstadoTurno
 go
 
+-- ====================== LOTE RESERVA TURNO ======================
+
+-- Requiero datos correctos cargados en ciertas tablas
+
+Insert into gestion_sede.Sede (nombre) values -- IDs 1 a 5
+('El Palomar'), ('Ramos Mejía'), ('San Justo'), ('La Noria'), ('Morón')
+go
+Select * from gestion_sede.Sede -- OK
+go
+
+Insert into gestion_sede.Especialidad (nombre) values -- IDs 1 a 5
+('Pediatría'), ('Oncología'), ('Kinesiología'), ('Diagnosta'), ('Ginecología')
+go
+Select * from gestion_sede.Especialidad -- OK
+go
+
+Insert into gestion_sede.Medico (nombre, apellido, matricula, id_especialidad) values -- IDs 12 a 17
+('Ricardo', 'Sendra', 2500, 2), ('Evangeline', 'Sánz', 1800, 3), ('Emeth', 'Marx', 3490, 5),
+('Gerardo', 'Ruiz', 1687, 4), ('Elena', 'De La Vega', 4300, 5), ('Sebastián', 'Esquivel', 5980, 4)
+go
+Select * from gestion_sede.Medico -- OK
+go
+/*
+delete gestion_sede.Medico where id = 6
+go
+delete gestion_sede.Medico where id = 7
+go
+delete gestion_sede.Medico where id = 10
+go
+delete gestion_sede.Medico where id = 11
+go	*/
+
+Insert into gestion_paciente.Paciente(nombre, apellido, apellido_materno) values -- IDs 1 a 6
+('Laura', 'López', 'Ramirez'),
+('Ezequiel', 'Baez', 'Peña') ,
+('José', 'Ibarola', 'Zarratea') ,
+('Evelin', 'Benítez', 'Heredia'), 
+('Santiago Emmanuel', 'Vallesteros', ''),
+('Ignacio', 'Francisco', 'Paz')
+go
+Select * from gestion_paciente.Paciente -- OK
+go
 
