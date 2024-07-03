@@ -30,36 +30,7 @@ BEGIN
 END
 GO
 	
--- Mas que este, me parece coherente que se consulte si un medico con tal especialidad en tal sede y fecha
--- esta disponible en esa hora, entiendo que DiasXSede tiene registrado las reservas de turno que tiene cada medico
--- en dichas sedes. Falta probarlo
-	
-CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidadHoraria (
-	@p_id_medico			INT, 
-	@p_id_especialidad		INT,
-	@p_id_sede_atencion		INT,
-	@p_fecha				DATE,
-	@p_hora					TIME,
-	@r_disponiblidad		INT OUTPUT
-)
-AS
-BEGIN
-	DECLARE @hora_fin TIME
-	SET @hora_fin = DATEADD(MINUTE, 15, @p_hora) -- suma 15 minutos a la Hora
 
-	IF EXISTS (
-		Select 'a' from gestion_sede.Medico Join gestion_sede.DiasXSede on id = id_medico
-		group by id
-		having id_especialidad = @p_id_especialidad
-		and id_sede = @p_id_sede_atencion
-		and dia = @p_fecha
-		and hora_inicio between @p_hora and @hora_fin
-		)
-		SET @r_disponiblidad = 1
-	ELSE
-		SET @r_disponiblidad = 0
-END
-go
 	
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION
