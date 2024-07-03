@@ -190,6 +190,8 @@ EXEC gestion_turno.ActualizarEstadoTurno 601, 'CANCE89ADO'
 go
 EXEC gestion_turno.ActualizarEstadoTurno 601, 'Cancelado'
 go
+EXEC gestion_turno.InsertarEstadoTurno 604, 'Pendiente'
+go
 Select * from gestion_turno.EstadoTurno
 go
 
