@@ -111,98 +111,86 @@ EXEC gestion_sede.ImportarMedico
 	@p_ruta = '../casos_de_prueba/Medicos.csv'
 
 
--- LOTE TIPO TURNO
+-- ====================== LOTE TIPO TURNO ======================
 
-EXEC gestion_turno.InsertarTipoTurno 10, 'Presencial';
+EXEC gestion_turno.InsertarTipoTurno 10, 'Presencial'
 go
-SELECT * FROM gestion_turno.TipoTurno where id = 10
-DELETE FROM gestion_turno.TipoTurno WHERE id = 10
+Select * from gestion_turno.TipoTurno where id = 10
+go
+EXEC gestion_turno.InsertarTipoTurno 11, 'virtual'
+Select * from gestion_turno.TipoTurno where id = 11
+go
 
-EXEC gestion_turno.InsertarTipoTurno 11, 'Virtual';
+-- id_tipo_turno ya existe -> INFRACCION DE RESTRICCION PK_tipoID
+EXEC gestion_turno.InsertarTipoTurno 11, 'repetido'
 go
 
--- id_tipo_turno ya existe
-EXEC gestion_turno.InsertarTipoTurno 11, 'repetido';
-go
 -- tipo_turno ya existe
-EXEC gestion_turno.InsertarTipoTurno 8, 'Presencial';
-go
-EXEC gestion_turno.InsertarTipoTurno 9, 'Presencial';
-go
-DELETE FROM gestion_turno.TipoTurno WHERE id = 8
-DELETE FROM gestion_turno.TipoTurno WHERE id = 9
-
--- No debe haber otro tipo de turno
-EXEC gestion_turno.InsertarTipoTurno 11, 'a distancia';
-go
--- No debe haber numeros
-EXEC gestion_turno.InsertarTipoTurno 11, 'asitencia45';
+EXEC gestion_turno.InsertarTipoTurno 8, 'Presencial'
 go
 
--- LOTE ESTADO TURNO
-
-EXEC gestion_turno.InsertarEstadoTurno 1, 'Disponible';
+-- No debe haber otro tipo de turno -> INFRACCION DE RESTRICCION PK_tipoID
+EXEC gestion_turno.InsertarTipoTurno 11, 'a distancia'
 go
-EXEC gestion_turno.InsertarEstadoTurno 2, 'Cancelado';
-go
-EXEC gestion_turno.InsertarEstadoTurno 3, 'Ausente';
-go
-EXEC gestion_turno.InsertarEstadoTurno 4, 'Atendido';
+-- No debe haber numeros -> Instrucción INSERT en conflicto con la restricción CHECK 'Ck_TipoTurno', column 'nombre'
+EXEC gestion_turno.InsertarTipoTurno 12, 'asitencia45'
 go
 
--- id_estado ya existe
-EXEC gestion_turno.InsertarEstadoTurno 3, 'espera';
+-- Error en el campo: Nombre del tipo de turno invalido. Debe ser "Presencial" o "Virtual".
+EXEC gestion_turno.ActualizarTipoTurno 10, 'vir980'
 go
--- estado ya existe
-EXEC gestion_turno.InsertarEstadoTurno 8, 'Ausente';
+-- Error: El tipo de turno no existe
+EXEC gestion_turno.ActualizarTipoTurno 12, 'vir980'
 go
--- No admite numeros
-EXEC gestion_turno.InsertarEstadoTurno 7, '678ahu';
+EXEC gestion_turno.ActualizarTipoTurno 11, 'Virtual'
 go
-
-
--- LOTE RESERVA TURNO
-
-EXEC gestion_turno.InsertarReservaTurno 77, '2024-05-18', '9:45', 1500, 1, 11;
-go
-EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-10', '20:15', 1556, 1, 10;
-go
--- Cambia estado a Cancelado, podrá crearse otra con id 78
-EXEC gestion_turno.ActualizarReservaTurno 78, NULL, NULL, NULL, 2, NULL;
+Select * from gestion_turno.TipoTurno where id = 11
 go
 
+-- ====================== LOTE ESTADO TURNO ======================
 
-EXEC gestion_turno.InsertarReservaTurno 80, '2024-03-02', '12:15', 2135, 1, 10;
+EXEC gestion_turno.InsertarEstadoTurno 600, 'Disponible'
 go
-EXEC gestion_turno.InsertarReservaTurno 80, '2024-04-06', '13:00', 4890, 3, 10;
+Select * from gestion_turno.EstadoTurno where id = 600
 go
--- Nueva reserva con fecha hora y estado del que se canceló
-EXEC gestion_turno.InsertarReservaTurno 81, '2024-03-10', '20:15', 3440, 1, 10;
+EXEC gestion_turno.InsertarEstadoTurno 601, 'cancelado'
+go
+Select * from gestion_turno.EstadoTurno where id = 601
+go
+EXEC gestion_turno.InsertarEstadoTurno 602, 'Ausente'
+go
+Select * from gestion_turno.EstadoTurno where id = 602
+go
+EXEC gestion_turno.InsertarEstadoTurno 603, 'Atendido'
+go
+Select * from gestion_turno.EstadoTurno where id = 603
 go
 
-
--- El paciente ya tiene turno en esa fecha y hora
-EXEC gestion_turno.InsertarReservaTurno 82, '2024-03-02', '12:15', 2135, 1, 10;
+Select * from gestion_turno.EstadoTurno
 go
 
--- id_sede (desde 100 en adelante)
--- id_medico (desde 500 hasta 599)
--- id_especialidad (600 en adelante)
--- id_paciente (desde 1500 hasta 5000)
-	
--- El paciente no existe
-EXEC gestion_turno.InsertarReservaTurno 83, '2024-03-02', '12:30', 1300, 1, 10;
+-- id_estado ya existe -> Error en el campo: Error no identificado
+EXEC gestion_turno.InsertarEstadoTurno 603, 'espera';
 go
--- id ya existe
-EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-06', '9:00', 1500, 1, 11;
+-- Error: El estado de turno ya existe
+EXEC gestion_turno.InsertarEstadoTurno 608, 'Ausente';
 go
--- id_estado no existe
-EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1500, 5, 11;
+-- No admite numeros -> Error en el campo: Nombre del estado de turno invalido
+EXEC gestion_turno.InsertarEstadoTurno 607, '678ahu';
 go
--- id_tipo_turno no existe
-EXEC gestion_turno.InsertarReservaTurno 85, '2024-03-06', '10:00', 1500, 1, 49;
+
+-- Estado NO existe
+EXEC gestion_turno.ActualizarEstadoTurno 604, 'Pendiente'
 go
--- fecha formato incorrecto?
-EXEC gestion_turno.InsertarReservaTurno 86, '18-05-2024', '10:30', 1500, 1, 11;
+-- Excede el largo del nombre -> NO LO DETECTA!!!
+EXEC gestion_turno.ActualizarEstadoTurno 601, 'disponibleeesssaaa'
 go
+-- Error en el campo: Nombre del estado de turno invalido
+EXEC gestion_turno.ActualizarEstadoTurno 601, 'CANCE89ADO'
+go
+EXEC gestion_turno.ActualizarEstadoTurno 601, 'Cancelado'
+go
+Select * from gestion_turno.EstadoTurno
+go
+
 
