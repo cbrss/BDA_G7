@@ -902,14 +902,14 @@ BEGIN
 
 		SET @mensaje = CASE
 			WHEN CHARINDEX('Ck_SedeNombre', @Error) > 0 THEN 'Nombre de la sede invalido.'
-			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Dirección de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Direccion de la sede invalida.'
 			WHEN CHARINDEX('Ck_SedeLocalidad', @Error) > 0 THEN 'Localidad de la sede invalida.'
 			WHEN CHARINDEX('Ck_SedeProvincia', @Error) > 0 THEN 'Provincia de la sede invalida.'
 			ELSE 'Error no identificado'
 		END
 
 		PRINT 'Error en el campo: ' + @mensaje;
-END CATCH
+	END CATCH
 END
 GO
 
@@ -917,10 +917,10 @@ GO
 
 CREATE OR ALTER PROCEDURE gestion_sede.InsertarSede
 	@p_id			INT			= NULL,
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30)
+	@p_nombre		VARCHAR(31),
+	@p_direccion	VARCHAR(31),
+	@p_localidad	VARCHAR(31),
+	@p_provincia	VARCHAR(31)
 AS
 BEGIN
 	set nocount on
@@ -935,6 +935,8 @@ BEGIN
 		PRINT 'Error: La sede ya existe'
 		RETURN
 	END
+
+	BEGIN TRY
 	INSERT INTO gestion_sede.Sede (
 		nombre,
 		direccion,
@@ -947,7 +949,21 @@ BEGIN
 		@p_localidad,
 		@p_provincia
 	)
-	
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_SedeNombre', @Error) > 0 THEN 'Nombre de la sede invalido.'
+			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Direccion de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeLocalidad', @Error) > 0 THEN 'Localidad de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeProvincia', @Error) > 0 THEN 'Provincia de la sede invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO	
 
@@ -1235,7 +1251,7 @@ GO
 
 CREATE OR ALTER PROCEDURE gestion_sede.InsertarEspecialidad
 	@p_id		INT			= NULL,
-	@p_nombre	VARCHAR(30)
+	@p_nombre	VARCHAR(31)
 AS
 BEGIN
 	set nocount on

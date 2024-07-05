@@ -94,14 +94,14 @@ BEGIN
 		id					INT,
 		id_paciente			INT,
 		fecha				DATE,
-		nombre				VARCHAR(50),
+		nombre				VARCHAR(100),
 		autorizado			BIT DEFAULT 0,
 		doc_resultado		VARCHAR(max),
 		img_resultado		VARCHAR(max),
 		borrado_logico		BIT DEFAULT 0,
 
 		CONSTRAINT Ck_EstudioNombre		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
-													AND LEN(nombre) <= 30
+													AND LEN(nombre) <= 100
 												),
 		CONSTRAINT PK_EstudioID			 PRIMARY KEY(id),
 		CONSTRAINT FK_Estudio_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
@@ -416,3 +416,19 @@ BEGIN
 END;
 GO
 
+/*
+drop table gestion_paciente.Domicilio
+drop table gestion_paciente.Prestador
+drop table gestion_paciente.Cobertura
+drop table gestion_paciente.Estudio
+drop table gestion_paciente.Usuario
+drop table gestion_sede.DiasXSede
+drop table gestion_sede.Sede
+drop table gestion_sede.Medico
+drop table gestion_sede.Especialidad
+
+drop table gestion_turno.ReservaTurno
+drop table gestion_turno.TipoTurno
+drop table gestion_turno.EstadoTurno
+
+drop table gestion_paciente.Paciente*/

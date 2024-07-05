@@ -17,6 +17,7 @@ GO
 
 /*
 Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "casos_de_prueba"
+y para testear con las distintas rutas, solo hay que reemplazar "@p_ruta" con la ruta del caso de prueba
 */
 
 -- ====================== Importacion validos ======================
@@ -210,19 +211,35 @@ un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, 
 del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
 el importe a facturarle al paciente.
 
-para el cdp necesito previo ingresar un paciente relacionado con un estudio
+para testear el procedimiento, se debe ejecutar hasta el comentario -- ======== V1 =======
+y para borrar las inserciones ejecutar hasta el comentario -- ======== V2 =======
 */
+
+INSERT INTO gestion_paciente.Paciente(nombre, apellido, fecha_nac, tipo_doc, num_doc, sexo, genero, nacionalidad, mail)
+VALUES ('testPaciente', 'Perez', '1980-01-01', 'DNI', 12345678, 'Masculino', 'Masculino', 'Argentina', 'pepe@hotmial.com');
+GO
+
+DECLARE @id_paciente int
+SET @id_paciente= (SELECT SCOPE_IDENTITY())
+
+insert into gestion_paciente.Estudio(id, id_paciente, autorizado, nombre)
+values (1, @id_paciente, 1, 'ECOCARDIOGRAMA CON STRESS CON RESERVA DE FLUJO CORONARIO')
 
 DECLARE @p_respuesta varchar(100)
 
 EXEC gestion_paciente.AutorizarEstudio 
-	@p_id_estudio		= '41365',
-	@p_dni_paciente		= 4268398306,
-	@p_plan_prestador	=  'Jovenes',	
+	@p_id_estudio		= 1,
+	@p_dni_paciente		= 12345678,
+	@p_plan_prestador	=  'Plan 800 OSPOCE Integral',	
 	@p_ruta				= 'D:\BDA_TALLER\BDA_tp\casos_de_prueba\Centro_Autorizaciones.Estudios clinicos.json',	
 	@p_respuesta		= @p_respuesta OUTPUT;
 
 print (@p_respuesta)
+-- ======== V1 =======
+
+delete from gestion_paciente.Estudio
+delete from gestion_paciente.Paciente
+-- ======== V2 =======
 
 -- ====================== LOTE TIPO TURNO ======================
 
@@ -463,8 +480,7 @@ go --> Instrucción UPDATE en conflicto con la restricción FOREIGN KEY 'FK_esta
 
 -- El tipo de turno no existe (IDs 10 y 11)
 EXEC gestion_turno.ActualizarReservaTurno @p_id = 79, @p_id_estado_turno = 601, @p_id_tipo_turno = 15
-go -- Instrucción UPDATE en conflicto con la restricción FOREIGN KEY 'FK_tipoID'.
---	El conflicto ha aparecido en la base de datos 'Com5600G07', tabla 'gestion_turno.TipoTurno', column 'id'.
+go 
 
 -- =============================== ELIMINAR ===============================
 
@@ -685,7 +701,7 @@ EXEC gestion_paciente.InsertarPaciente
 	@p_id					= 5,
 	@p_nombre				= 'Santiago',
 	@p_apellido				= 'Vallesteros',
---	@p_apellido_materno		= '',
+	@p_apellido_materno		= '',
 	@p_fecha_nac			= '1997-05-20',
 	@p_tipo_doc				= 'DNI',
 	@p_num_doc				= 30152136,
@@ -716,8 +732,7 @@ EXEC gestion_paciente.InsertarPaciente
 	@p_mail					= 'zarrateajose@gmail.com',
 	@p_tel_fijo				= '04005020',
 	@p_tel_alt				= '1148199526',
-	@p_tel_laboral			= '16162320',
-	@p_id_identity			= NULL OUTPUT
+	@p_tel_laboral			= '16162320'
 go
 Select * from gestion_paciente.Paciente where id = 3
 go
@@ -901,7 +916,7 @@ EXEC gestion_paciente.InsertarPaciente
 	@p_apellido_materno		= 'Paz',
 	@p_fecha_nac			= '2000-05-25',
 	@p_tipo_doc				= 'DNI',
-	@p_num_doc				= 4694521220,
+	@p_num_doc				= 46945212,
 	@p_sexo					= 'Masculino',
 	@p_genero				= 'Masculino',
 	@p_nacionalidad			= 'Chile',
@@ -1128,45 +1143,71 @@ go
 -- ====================== LOTE SEDE ======================
 
 -- Direccion excedio
-EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. San Salvador de los Andalos 1248', 'Avellaneda', 'Buenos Aires'
+EXEC gestion_sede.insertarSede 
+	@p_nombre = 'Avellaneda', 
+	@p_direccion = 'Av. San Salvador de los Andalos 1248132123123123', 
+	@p_localidad = 'Avellaneda', 
+	@p_provincia = 'Buenos Aires'
 
 -- Localidad excedio
-EXEC gestion_sede.insertarSede 'Once', 'Mitre 1233', 'Teniente Primero Juan Jose San Martin', 'Buenos Aires'
+EXEC gestion_sede.insertarSede 
+	@p_nombre = 'Once', 
+	@p_direccion = 'Mitre 1233', 
+	@p_localidad = 'Teniente Primero Juan Jose -San Martin1123123123', 
+	@p_provincia = 'Buenos Aires'
 
 -- Provincia invalida
-EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. Mitre 749', 'Avellaneda', 'Bu3nos A1res'
+EXEC gestion_sede.insertarSede 
+	@p_nombre = 'Avellaneda', 
+	@p_direccion = 'Av. Mitre 749', 
+	@p_localidad = 'Avellaneda', 
+	@p_provincia = 'Bu3nos A1res'
 
 
 -- ====================== LOTE ESPECIALIDAD ======================
 
 -- Nombre excedido
-EXEC gestion_sede.insertarEspecialidad 'Otorrinonaringologo infantoadolescente'
-
+EXEC gestion_sede.insertarEspecialidad 
+	@p_nombre = 'Otorrinonaringologo infantoadolescente'
+	
 -- Nombre invalido
-EXEC gestion_sede.insertarEspecialidad 'Medico famili44r'
+EXEC gestion_sede.insertarEspecialidad 
+	@p_nombre = 'Medico famili44r'
 
 -- ====================== LOTE MEDICO ======================
 
--- Nombre invalido
-EXEC gestion_sede.insertarMedico 'Dr. 9', 'Paula', 119925, 1
-
--- Nombre excedido
-EXEC gestion_sede.insertarMedico 'Dr. De La Rosa Villalba Fernandez', 'Paula', 119925, 1
-
 -- Apellido invalido
-EXEC gestion_sede.insertarMedico 'Dr. Zapaton', 't41', 119955, 1
+EXEC gestion_sede.insertarMedico 
+	@p_apellido = 'Dr. 9', 
+	@p_nombre = 'Paula', 
+	@p_matricula = 119925,
+	@p_id_especialidad = 1
 
 -- Apellido excedido
-EXEC gestion_sede.insertarMedico 'Dr. Hibbert', 'Ignacio Nicolas Augustino Segundo', 119943, 1
+EXEC gestion_sede.insertarMedico 
+	@p_apellido = 'Dr. De La Rosa Villalba Fernandez123123123', 
+	@p_nombre = 'Paula', 
+	@p_matricula = 119925, 
+	@p_id_especialidad = 1
+
+-- Nombre invalido
+EXEC gestion_sede.insertarMedico 
+	@p_apellido = 'Dr. Zapaton',
+	@p_nombre = 't41', 
+	@p_matricula = 119955, 
+	@p_id_especialidad = 1
+
+-- Nombre excedido
+EXEC gestion_sede.insertarMedico 
+	@p_apellido = 'Dr. Hibbert', 
+	@p_nombre = 'Ignacio Nicolas Augustino Segundo5',
+	@p_matricula = 119943, 
+	@p_id_especialidad = 1
 
 -- Especialidad inexistente
-Insert into gestion_sede.Especialidad (nombre) values -- IDs 1 a 5
-('Pediatría'), ('Oncología'), ('Kinesiología'), ('Diagnosta'), ('Ginecología')
-go
+EXEC gestion_sede.insertarMedico 
+	@p_apellido = 'Dr Riviera', 
+	@p_nombre = 'Nick', 
+	@p_matricula = 184968, 
+	@p_id_especialidad = 6
 
-EXEC gestion_sede.insertarMedico 'Dr. Riviera', 'Nick', 184968, 6
-
--- ====================== LOTE DIASXSEDE ======================
-
--- horario que no es valido
-EXEC gestion_sede.insertarDiasXSede 1, 6, 4, 549, Date(), '08:50:00'

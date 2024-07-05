@@ -12,7 +12,10 @@
 
 USE Com5600G07
 GO
-
+/*
+	NOTA: algunos items del enunciado estan en la creacion de funciones auxiliares ya que se 
+	utilizan en los procedimientos.
+*/
 --- FUNCIONES Y PROCEDIMIENTOS PARA LOS ITEMS DEL ENUNCIADO
 
 /*
@@ -23,7 +26,7 @@ el importe a facturarle al paciente.
 */
 
 CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
-	@p_id_estudio		VARCHAR(30),
+	@p_id_estudio		INT,
 	@p_dni_paciente		INT,
 	@p_plan_prestador	VARCHAR(30),	
 	@p_ruta				VARCHAR(max),	
@@ -31,6 +34,7 @@ CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
 AS
 BEGIN
 	set nocount on
+
 	-- busco id de paciente/historia clinica con el dni recibido
 	DECLARE @id_historia_clinica	INT				= (SELECT id FROM gestion_paciente.Paciente WHERE num_doc = @p_dni_paciente)
 	-- busco si esta autorizado el estudio
@@ -64,18 +68,19 @@ BEGIN
 	FROM OPENJSON(@json) AS j
 	WHERE JSON_VALUE(value, '$.Estudio') = @nombre_estudio 
 		AND JSON_VALUE(value, '$.Plan') = @p_plan_prestador
-	
+	print (@auxiliar)
 	IF	@auxiliar = 0
 	BEGIN
 		SET @p_respuesta = 'No se encontro informacion para el estudio y plan especificados.';
 		RETURN;
 	END
+	ELSE IF @auxiliar = 1
 	SET @p_respuesta = 'El importe a facturar al paciente es: ' + CAST(ISNULL(@importe, 0) as varchar(15)) + '$'
 	-- si necesita autorizacion y no la tiene, entonces rechazado.
-	IF @req_autorizacion = 'true' AND @autorizado = 0
-	BEGIN
+	ELSE IF @req_autorizacion = 'true' AND @autorizado = 0
 		SET @p_respuesta = 'Se requiere autorizacion y el estudio no esta autorizado.'
-	END
+	ELSE
+		SET @p_respuesta = 'Error desconocido'
 
 END;
 GO
