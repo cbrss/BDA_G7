@@ -562,6 +562,13 @@ EXEC gestion_paciente.InsertarDomicilio 800, 2, 'Ignacio Arieta', 3000, 2, 50, 1
 go
 Select * from gestion_paciente.Usuario where id = 800
 go
+-- Paciente NO existe
+EXEC gestion_paciente.InsertarDomicilio 899, 44, 'Ignacio Arieta', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
+go
+Select * from gestion_paciente.Usuario where id = 899
+go
+Select * from gestion_paciente.Paciente where id = 44
+go
 -- Calle excedio su largo de 30
 EXEC gestion_paciente.InsertarDomicilio 900, 2, 'Ignacio Arieta Yrigoyen y Mendoza', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
 go
