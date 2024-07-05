@@ -595,6 +595,432 @@ go
 Select * from gestion_paciente.Paciente
 go
 */
+-- ====================== LOTE PACIENTE ======================
+
+/* gestion_paciente.InsertarPaciente
+	@p_id					INT				= NULL,
+	@p_nombre				VARCHAR(30),
+	@p_apellido				VARCHAR(30),
+	@p_apellido_materno		VARCHAR(30), --> Esta debería poder ser NULL
+	@p_fecha_nac			DATE,
+	@p_tipo_doc				CHAR(5),
+	@p_num_doc				INT,
+	@p_sexo					VARCHAR(11),
+	@p_genero				VARCHAR(9),
+	@p_nacionalidad			VARCHAR(20),
+	@p_foto_perfil			VARCHAR(max)	= NULL,
+	@p_mail					VARCHAR(30),
+	@p_tel_fijo				VARCHAR(15),
+	@p_tel_alt				VARCHAR(15)		= NULL,
+	@p_tel_laboral			VARCHAR(15)		= NULL,
+	@p_id_identity			INT				= NULL OUTPUT 
+*/
+-- Datos válidos
+
+-- Todos los campos (menos perfil)
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 3,
+	@p_nombre				= 'José',
+	@p_apellido				= 'Ibarola',
+	@p_apellido_materno		= 'Zarratea',
+	@p_fecha_nac			= '1996-02-06',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 30152136, --No debería ser BIGINT?
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Brasil',
+	@p_mail					= 'zarrateajose@gmail.com',
+	@p_tel_fijo				= '04008956',
+	@p_tel_alt				= '1148199526',
+	@p_tel_laboral			= '16162320',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 3
+go
+
+-- Sin Tel laboral
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 1,
+	@p_nombre				= 'Laura',
+	@p_apellido				= 'López',
+	@p_apellido_materno		= 'Ramirez',
+	@p_fecha_nac			= '1995-08-03',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 49560012,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Argentina',
+	@p_mail					= 'ramirezlauraestela@gmail.com',
+	@p_tel_fijo				= '04001616',
+	@p_tel_alt				= '1123354626',
+--	@p_tel_laboral			= '19162320',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 1
+go
+
+-- Sin Tel alt
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 2,
+	@p_nombre				= 'Ezequiel',
+	@p_apellido				= 'Báez',
+	@p_apellido_materno		= 'Peña',
+	@p_fecha_nac			= '1996-01-15',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 32692136,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Perú',
+	@p_mail					= 'baezezequiel52@gmail.com',
+	@p_tel_fijo				= '04007987',
+--	@p_tel_alt				= '1123562160',
+	@p_tel_laboral			= '44789960',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 2
+go
+
+-- Sin apellido materno
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 5,
+	@p_nombre				= 'Santiago',
+	@p_apellido				= 'Vallesteros',
+--	@p_apellido_materno		= '',
+	@p_fecha_nac			= '1997-05-20',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 30152136,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Guyana',
+	@p_mail					= 'vallesterosChampion@gmail.com',
+	@p_tel_fijo				= '08006644',
+	@p_tel_alt				= '1165601222',
+	@p_tel_laboral			= '16162320',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 5
+go
+
+-- Paciente existe (cambia tel fijo)
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 3,
+	@p_nombre				= 'José',
+	@p_apellido				= 'Ibarola',
+	@p_apellido_materno		= 'Zarratea',
+	@p_fecha_nac			= '1996-02-06',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 30152136,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Brasil',
+	@p_mail					= 'zarrateajose@gmail.com',
+	@p_tel_fijo				= '04005020',
+	@p_tel_alt				= '1148199526',
+	@p_tel_laboral			= '16162320',
+	@p_id_identity			= NULL OUTPUT
+go
+Select * from gestion_paciente.Paciente where id = 3
+go
+
+-- DATOS INVALIDOS
+
+-- Nombre inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evel45896',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Apellido inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez4444',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Apellido materno inaválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Here999dia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Tipo doc inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DN45898I',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+
+-- Sexo inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'F49595nino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Genero inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'FEM49852',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Nacionalidad inválida
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia49',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Ingreso correcto de Evelin
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 4,
+	@p_nombre				= 'Evelin',
+	@p_apellido				= 'Benítez',
+	@p_apellido_materno		= 'Heredia',
+	@p_fecha_nac			= '1996-09-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 41235656,
+	@p_sexo					= 'Femenino',
+	@p_genero				= 'Femenino',
+	@p_nacionalidad			= 'Colombia',
+	@p_mail					= 'benitezEve@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 4
+go
+
+-- Mail inválido (falta @)
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48.gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+-- Mail inválido (falta .)
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48@gmailCom',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+-- Tel fijo inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48.gmail.com',
+	@p_tel_fijo				= '0800aca4455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+-- Tel alternativo inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= 'GUI05959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+-- Tel laboral inválido
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '407CISCO',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+-- Ingreso correcto de Ignacio
+EXEC gestion_paciente.InsertarPaciente
+	@p_id					= 6,
+	@p_nombre				= 'Ignacio',
+	@p_apellido				= 'Francisco',
+	@p_apellido_materno		= 'Paz',
+	@p_fecha_nac			= '2000-05-25',
+	@p_tipo_doc				= 'DNI',
+	@p_num_doc				= 4694521220,
+	@p_sexo					= 'Masculino',
+	@p_genero				= 'Masculino',
+	@p_nacionalidad			= 'Chile',
+	@p_mail					= 'ignacio48@gmail.com',
+	@p_tel_fijo				= '08004455',
+	@p_tel_alt				= '1139605959',
+	@p_tel_laboral			= '40708520',
+	@p_id_identity			= NULL
+go
+Select * from gestion_paciente.Paciente where id = 6
+go
+
+Select * from gestion_paciente.Paciente
+go
 
 -- ====================== LOTE USUARIO ======================
 
@@ -674,6 +1100,13 @@ go
 EXEC gestion_paciente.InsertarDomicilio 800, 2, 'Ignacio Arieta', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
 go
 Select * from gestion_paciente.Usuario where id = 800
+go
+-- Paciente NO existe
+EXEC gestion_paciente.InsertarDomicilio 899, 44, 'Ignacio Arieta', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
+go
+Select * from gestion_paciente.Usuario where id = 899
+go
+Select * from gestion_paciente.Paciente where id = 44
 go
 -- Calle excedio su largo de 30
 EXEC gestion_paciente.InsertarDomicilio 900, 2, 'Ignacio Arieta Yrigoyen y Mendoza', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
