@@ -7,13 +7,17 @@
 			Lautaro Da silva				42816815
 			Abigail Karina Peñafiel Huayta	41913506
 
-		FECHA DE ENTREGA: 14/6/2024
+		FECHA DE ENTREGA: 5/7/2024
+*/
+
+/*
+	NOTA: el script de testing esta separado del armado de la base de datos, la ejecucion de estos esta comentada y en orden
+	no es posible ejecutarlo todo de una ya que pusimos selects entre las pruebas para que se vea realmente que se inserta
+	o mensajes para mostrar los errores en cada uno
 */
 
 USE Com5600G07
 GO
-
-
 
 /*
 Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "casos_de_prueba"

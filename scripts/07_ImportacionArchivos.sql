@@ -7,7 +7,7 @@
 			Lautaro Da silva				42816815
 			Abigail Karina Peñafiel Huayta	41913506
 
-		FECHA DE ENTREGA: 14/6/2024
+		FECHA DE ENTREGA: 5/7/2024
 */
 
 

@@ -7,7 +7,7 @@
 			Lautaro Da silva				42816815
 			Abigail Karina Peñafiel Huayta	41913506
 
-		FECHA DE ENTREGA: 14/6/2024
+		FECHA DE ENTREGA: 5/7/2024
 */
 
 
@@ -21,7 +21,6 @@ BEGIN
 	COLLATE SQL_Latin1_General_CP1_CI_AS;
 END
 go
-
 
 USE Com5600G07
 GO
@@ -653,9 +652,134 @@ GO
 
 ---- CREACION STORE PROCEDURES ESQUEMA GESTION PACIENTE
 
+-- EXISTE PACIENTE
+
+CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
+	@p_nombre				VARCHAR(30),
+	@p_apellido				VARCHAR(30),
+	@p_fecha_nac			DATE,
+	@p_tipo_doc				CHAR(5),
+	@p_num_doc				INT,
+	@p_sexo					VARCHAR(11),
+	@p_genero				VARCHAR(9),
+	@p_nacionalidad			VARCHAR(20)
+)
+RETURNS BIT
+BEGIN
+	DECLARE @r_existe BIT
+	IF EXISTS (
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE nombre			= @p_nombre
+			AND	apellido		= @p_apellido
+			AND	fecha_nac		= @p_fecha_nac
+			AND tipo_doc		= @p_tipo_doc
+			AND num_doc			= @p_num_doc
+			AND nacionalidad	= @p_nacionalidad
+	)
+	BEGIN
+		SET @r_existe = 1
+	END
+	ELSE
+	BEGIN
+		SET @r_existe = 0
+	END
+
+	RETURN @r_existe
+END
+GO	
 --- CREACION STORE PROCEDURES PACIENTE
+-- ACTUALIZAR PACIENTE
+ 
+CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPaciente
+    @p_id                   INT,
+    @p_nombre               VARCHAR(30) = NULL,
+    @p_apellido             VARCHAR(30) = NULL,
+    @p_apellido_materno     VARCHAR(30) = NULL,
+    @p_fecha_nac            DATE		= NULL,
+    @p_tipo_doc             CHAR(5)		= NULL,
+    @p_num_doc              INT			= NULL,
+    @p_sexo                 VARCHAR(11) = NULL,
+    @p_genero               VARCHAR(9)	= NULL,
+    @p_nacionalidad         VARCHAR(30) = NULL,
+    @p_foto_perfil          VARCHAR(MAX)= NULL,
+    @p_mail                 VARCHAR(30) = NULL,
+    @p_tel_fijo             VARCHAR(15) = NULL,
+    @p_tel_alt              VARCHAR(15) = NULL,
+    @p_tel_laboral          VARCHAR(15) = NULL,
+	@p_borrado_logico		BIT			= NULL
+AS
+BEGIN
+
+	DECLARE
+		@nombre					VARCHAR(30),
+		@apellido				VARCHAR(30),
+		@apellido_materno		VARCHAR(30),
+		@fecha_nac				DATE,
+		@tipo_doc				CHAR(5),
+		@num_doc				INT,
+		@sexo					VARCHAR(11),
+		@genero					VARCHAR(9),
+		@nacionalidad			VARCHAR(30),
+		@foto_perfil			VARCHAR(max),
+		@mail					VARCHAR(30),
+		@tel_fijo				VARCHAR(15),
+		@tel_alt				VARCHAR(15),
+		@tel_laboral			VARCHAR(15),
+		@borrado_logico			BIT
+	SELECT
+		@nombre					= nombre,
+		@apellido				= apellido,
+		@apellido_materno		= apellido_materno,
+		@fecha_nac				= fecha_nac,
+		@tipo_doc				= tipo_doc,
+		@num_doc				= num_doc,
+		@sexo					= sexo,
+		@genero					= genero,
+		@nacionalidad			= nacionalidad,
+		@foto_perfil			= foto_perfil,
+		@mail					= mail,
+		@tel_fijo				= tel_fijo,
+		@tel_alt				= tel_alt,
+		@tel_laboral			= tel_laboral,
+		@borrado_logico			= borrado_logico
+	FROM gestion_paciente.Paciente
+	WHERE id = @p_id
+
+	UPDATE gestion_paciente.Paciente
+	SET	
+		nombre					= ISNULL(@p_nombre, @nombre),
+        apellido				= ISNULL(@p_apellido, @apellido),
+        apellido_materno		= ISNULL(@p_apellido_materno, @apellido_materno),
+        fecha_nac				= ISNULL(@p_fecha_nac, @fecha_nac),
+        tipo_doc				= ISNULL(@p_tipo_doc, @tipo_doc),
+        num_doc					= ISNULL(@p_num_doc, @num_doc),
+        sexo					= ISNULL(@p_sexo, @sexo),
+        genero					= ISNULL(@p_genero, @genero),
+        nacionalidad			= ISNULL(@p_nacionalidad, @nacionalidad),
+        foto_perfil				= ISNULL(@p_foto_perfil, @foto_perfil),
+        mail					= ISNULL(@p_mail, @mail),
+        tel_fijo				= ISNULL(@p_tel_fijo, @tel_fijo),
+        tel_alt					= ISNULL(@p_tel_alt, @tel_alt),
+        tel_laboral				= ISNULL(@p_tel_laboral, @tel_laboral),
+		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico),
+        fecha_actualizacion		= GETDATE(),
+		usr_actualizacion		= ORIGINAL_LOGIN()
+	WHERE id = @p_id
+END;
+GO
+
 
 -- INSERTAR PACIENTE
+-- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
+-- los NULL son porque en la estructura de los archivos a importar no son valores dados.
+-- el null en p_id es un caso especifico, es identity por lo tanto, no deberia poder enviarse
+-- pero al manejar borrado logico, es de esperar que algun operador del hospital envie algun ID de un archivo fisico que ellos tengan del paciente
+-- donde se vea el id que se le fue asignado, por lo tanto existen 2 casos:
+--	el id es importado, por lo tanto, se utiliza identity y se inserta directamente
+--	el id es ingresado por operador, por lo tanto, se valida que exista dicho paciente previo a intentar insertarlo
+
+-- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
 
 CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id					INT				= NULL,
@@ -2666,6 +2790,7 @@ BEGIN
 	END
 END
 go
+
 
 
 USE Com5600G07

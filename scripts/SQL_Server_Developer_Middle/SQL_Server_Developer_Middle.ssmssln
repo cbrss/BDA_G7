@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\05_CreacionProcedimientos.sql = ..\05_CreacionProcedimientos.sql
 		..\06_CreacionItemsEnunciado.sql = ..\06_CreacionItemsEnunciado.sql
 		..\07_ImportacionArchivos.sql = ..\07_ImportacionArchivos.sql
+		..\08_Testing.sql = ..\08_Testing.sql
+		..\Com5600_Grupo07_Entrega01.sql = ..\Com5600_Grupo07_Entrega01.sql
 	EndProjectSection
 EndProject
 Global
@@ -19,7 +21,7 @@ Global
 		Default|Default = Default|Default
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9CD7B494-ADAE-4847-AF9E-1D9F10D53C8F}.Default|Default.ActiveCfg = Default
+		{A6A7C501-0C14-49C1-9FE1-B52B4CDC86EB}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
