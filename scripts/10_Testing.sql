@@ -482,3 +482,100 @@ go
 Select * from gestion_paciente.Paciente
 go
 */
+
+-- ====================== LOTE USUARIO ======================
+
+-- gestion_paciente.InsertarUsuario @p_id,	@p_id_paciente,	@p_contrasena
+
+EXEC gestion_paciente.InsertarUsuario 20, 1, 'LauraLopezRamirez87'
+go
+Select * from gestion_paciente.Usuario where id = 20
+go
+
+-- Usuario ya existe
+EXEC gestion_paciente.InsertarUsuario 20, 1, 'LauraLopezRamirez87'
+go
+-- Paciente NO existe
+EXEC gestion_paciente.InsertarUsuario 20, 15, 'LauraLopezRamirez87'
+go
+-- Contraseña excede el largo maximo VARCHAR(30) SEGURO NO LO DETECTA
+EXEC gestion_paciente.InsertarUsuario 21, 2, 'EzequielBaezPenia5ezequielBaezPenia'
+go
+
+Select * from gestion_paciente.Usuario
+go
+
+-- ====================== LOTE DOMICILIO ======================
+
+/* gestion_paciente.InsertarDomicilio
+    @p_id			INT		=	NULL,
+    @p_id_paciente	INT,
+    @p_calle		VARCHAR(30),
+    @p_numero		INT,
+    @p_piso			INT		=	NULL,
+    @p_departamento INT		=	NULL,
+    @p_cod_postal	INT		=	NULL,
+    @p_pais			VARCHAR(30),
+    @p_provincia	VARCHAR(30),
+    @p_localidad	VARCHAR(50)
+*/
+
+-- Con todos los campos
+EXEC gestion_paciente.InsertarDomicilio 800, 1, 'Yerua', 4300, 2, 50, 1766, 'Argentina', 'Buenos Aires', 'La Tablada'
+go
+Select * from gestion_paciente.Domicilio where id = 800
+go
+-- Sin piso ni departamento
+EXEC gestion_paciente.InsertarDomicilio
+	@p_id = 801,
+	@p_id_paciente = 5,
+	@p_calle = 'Gascón', @p_numero = 1260,
+	@p_cod_postal = 1766,
+	@p_pais = 'Argentina', @p_provincia = 'Buenos Aires', @p_localidad = 'La Tablada'
+go
+Select * from gestion_paciente.Domicilio where id = 800
+go
+-- En el departamento está su casa
+EXEC gestion_paciente.InsertarDomicilio
+	@p_id = 802,
+	@p_id_paciente = 3,
+	@p_calle = 'Perdriel', @p_numero = 6422,
+	@p_departamento = 346,
+	@p_cod_postal = 1766,
+	@p_pais = 'Argentina', @p_provincia = 'Buenos Aires', @p_localidad = 'La Tablada'
+go
+Select * from gestion_paciente.Domicilio where id = 800
+go
+-- Sin codigo postal
+EXEC gestion_paciente.InsertarDomicilio
+	@p_id = 803,
+	@p_id_paciente = 4,
+	@p_calle = 'Altolaguirre', @p_numero = 4300,
+	@p_piso = 8, @p_departamento = 29,
+	@p_pais = 'Argentina', @p_provincia = 'Buenos Aires', @p_localidad = 'Tapiales'
+go
+Select * from gestion_paciente.Domicilio where id = 803
+go
+
+-- ID Domicilio ya existe
+EXEC gestion_paciente.InsertarDomicilio 800, 2, 'Ignacio Arieta', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
+go
+Select * from gestion_paciente.Usuario where id = 800
+go
+-- Calle excedio su largo de 30
+EXEC gestion_paciente.InsertarDomicilio 900, 2, 'Ignacio Arieta Yrigoyen y Mendoza', 3000, 2, 50, 1754, 'Argentina', 'Buenos Aires', 'San Justo'
+go
+-- Localidad excedio su largo de 50
+EXEC gestion_paciente.InsertarDomicilio 901, 6, 'Zepeda', 6900, 2, 50, 1754, 'Argentina', 'Buenos Aires',
+									'Villa Luzuriaga de Almafuerte y Nuestra señora de Luján y el Sagrado Corazón'
+go
+-- Pais invalido
+EXEC gestion_paciente.InsertarDomicilio 902, 6, 'Zepeda', 6900, 2, 50, 1754, 'Argentina485', 'Buenos Aires', 'Villa Luzuriaga'
+go
+-- Provincia invalida
+EXEC gestion_paciente.InsertarDomicilio 903, 4, 'Almafuerte', 4200, 2, 50, 7118, 'Argentina', 'Buenos Aires74', 'San Justo'
+go
+
+Select * from gestion_paciente.Domicilio
+go
+
