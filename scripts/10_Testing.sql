@@ -217,15 +217,6 @@ Insert into gestion_sede.Medico (nombre, apellido, matricula, id_especialidad) v
 go
 Select * from gestion_sede.Medico -- OK
 go
-/*
-delete gestion_sede.Medico where id = 6
-go
-delete gestion_sede.Medico where id = 7
-go
-delete gestion_sede.Medico where id = 10
-go
-delete gestion_sede.Medico where id = 11
-go	*/
 
 Insert into gestion_paciente.Paciente(nombre, apellido, apellido_materno) values -- IDs 1 a 6
 ('Laura', 'López', 'Ramirez'),
@@ -238,3 +229,256 @@ go
 Select * from gestion_paciente.Paciente -- OK
 go
 
+/*	gestion_turno.InsertarReservaTurno
+	@p_id	@p_fecha	@p_hora		@p_id_paciente		@p_id_medico	@p_id_especialidad		@p_id_sede_atencion
+	@p_id_estado_turno	@p_id_tipo_turno
+*/
+
+-- Por convencion lo dejara Disponible (600) o Pendiente (604)
+-- ESTO DEBERIA CAMBIAR CON EL ARCHIVO DE DISPONIBILIDAD cuando cambie CONSULTAR DISPONIBILIDAD
+
+EXEC gestion_turno.InsertarReservaTurno 77, '2024-05-18', '9:45', 4, 15, 4, 3, 600, 11
+go
+Select * from gestion_turno.ReservaTurno where id = 77
+go
+
+EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-10', '20:15', 2, 12, 2, 1, 600, 10
+go
+Select * from gestion_turno.ReservaTurno where id = 78
+go
+
+Select * from gestion_turno.ReservaTurno
+go
+
+-- Cambia estado a Cancelado
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 78, @p_id_estado_turno = 601
+go
+Select * from gestion_turno.ReservaTurno where id = 78
+go
+
+
+EXEC gestion_turno.InsertarReservaTurno 79, '2024-03-02', '12:15', 3, 14, 5, 4, 600, 10
+go
+Select * from gestion_turno.ReservaTurno where id = 79
+go
+EXEC gestion_turno.InsertarReservaTurno 80, '2024-04-06', '13:00', 5, 13, 3, 2, 600, 10
+go
+Select * from gestion_turno.ReservaTurno where id = 80
+go
+/*EXEC gestion_turno.ModificarEstadoReserva 80, 602 -- Estado Ausente
+go*/
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 80, @p_id_estado_turno = 602 -- Estado Ausente
+go
+Select * from gestion_turno.ReservaTurno where id = 80
+go
+
+-- Nueva reserva con fecha hora y estado del que se canceló (se insertó como Pendiente -604- en sede 1)
+EXEC gestion_turno.InsertarReservaTurno 81, '2024-03-10', '20:15', 1, 12, 2, 1, 600, 10
+go
+Select * from gestion_turno.ReservaTurno where id = 81
+go
+
+-- El paciente ya tiene turno a esa fecha y hora (si es en otra sede y/o con otro medico, NO SE ACLARARÁ)-> OK
+EXEC gestion_turno.InsertarReservaTurno 82, '2024-03-02', '12:15', 3, 14, 5, 4, 600, 10
+go
+
+-- El paciente tenía turno Pendiente a esa fecha y hora en sede 1, se anulará y creará nuevo turno en sede 5 -> OK
+EXEC gestion_turno.InsertarReservaTurno 82, '2024-03-10', '20:15', 1, 17, 4, 5, 600, 10
+go
+Select * from gestion_turno.ReservaTurno where id = 81 -- Se borró -> OK
+go
+Select * from gestion_turno.ReservaTurno where id = 82 -- Nuevo turno -> estado Pendiente
+go
+
+-- El paciente no existe (IDs 1 a 5) -> OK
+EXEC gestion_turno.InsertarReservaTurno 83, '2024-03-02', '12:30', 9, 14, 5, 4, 600, 10
+go
+-- id ya existe -> El ID de la reserva ya existe. Se borró
+EXEC gestion_turno.InsertarReservaTurno 78, '2024-03-06', '9:00', 1, 17, 4, 5, 600, 11
+go
+Select * from gestion_turno.ReservaTurno where id = 78
+go
+-- El estado no existe -> OK
+EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1, 17, 4, 5, 605, 11
+go
+-- El tipo de turno no existe -> OK
+EXEC gestion_turno.InsertarReservaTurno 85, '2024-03-06', '10:00', 1, 17, 4, 5, 600, 49
+go
+
+-- Estas validaciones son INDISPENSABLES para cargar DiasXSede, las puse para probar que va al SP auxiliar como debe
+
+-- El medico no existe (IDs 12 a 17) -> OK
+EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1, 60, 4, 5, 600, 11
+go
+-- La especialidad no existe (IDs 1 a 5) -> OK
+EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1, 17, 39, 5, 600, 11
+go
+-- La sede no existe (IDs 1 a 5) -> OK
+EXEC gestion_turno.InsertarReservaTurno 84, '2024-03-06', '9:15', 1, 17, 4, 1200, 600, 11
+go
+
+-- =============================== ACTUALIZAR ===============================
+
+-- Solo se debería poder actualizar fecha, hora, estado y quizá tipo de turno
+-- (Para fecha y hora no se está controlando la disponibilidad horaria del medico)
+
+Select * from gestion_turno.ReservaTurno
+
+-- Cambia reserva 79 a Atendido (603)
+EXEC gestion_turno.ModificarEstadoReserva 79, 603
+go
+Select * from gestion_turno.ReservaTurno where id = 79
+go
+-- Cambia reserva 81 Pendiente a Disponible (600)
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 81, @p_id_estado_turno = 600
+go
+Select * from gestion_turno.ReservaTurno where id = 81
+go
+
+-- La reserva no existe -> OK
+EXEC gestion_turno.ModificarEstadoReserva 84, 601
+go
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 84, @p_id_estado_turno = 601
+go
+
+-- El estado no existe (IDs 600 a 603)
+EXEC gestion_turno.ModificarEstadoReserva 77, 1809 --> OK
+go
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 77, @p_id_estado_turno = 1809
+go --> Instrucción UPDATE en conflicto con la restricción FOREIGN KEY 'FK_estadoID'.
+--	El conflicto ha aparecido en la base de datos 'Com5600G07', tabla 'gestion_turno.EstadoTurno', column 'id'.
+
+-- El tipo de turno no existe (IDs 10 y 11)
+EXEC gestion_turno.ActualizarReservaTurno @p_id = 79, @p_id_estado_turno = 601, @p_id_tipo_turno = 15
+go -- Instrucción UPDATE en conflicto con la restricción FOREIGN KEY 'FK_tipoID'.
+--	El conflicto ha aparecido en la base de datos 'Com5600G07', tabla 'gestion_turno.TipoTurno', column 'id'.
+
+-- =============================== ELIMINAR ===============================
+
+EXEC gestion_turno.BorrarReservaTurno 77 --> OK
+go
+Select * from gestion_turno.ReservaTurno where id = 77
+go
+-- La reserva no existe -> OK
+EXEC gestion_turno.BorrarReservaTurno 266
+go
+Select * from gestion_turno.ReservaTurno --> Antes de vaciar la tabla ReservaTurno
+go
+
+-- Para vaciar la tabla ReservaTurno, debo vaciar Sede, Medico y Especialidad
+
+Delete gestion_sede.Sede where id = 1
+go
+Delete gestion_sede.Sede where id = 2
+go
+Delete gestion_sede.Sede where id = 3
+go
+Delete gestion_sede.Sede where id = 4
+go
+Delete gestion_sede.Sede where id = 5
+go
+Select * from gestion_sede.Sede
+go
+
+Delete gestion_sede.Medico where id = 12
+go
+Delete gestion_sede.Medico where id = 13
+go
+Delete gestion_sede.Medico where id = 14
+go
+Delete gestion_sede.Medico where id = 15
+go	
+Delete gestion_sede.Medico where id = 16
+go
+Delete gestion_sede.Medico where id = 17
+go
+Select * from gestion_sede.Medico
+go
+
+Delete gestion_sede.Especialidad where id = 1
+go
+Delete gestion_sede.Especialidad where id = 2
+go
+Delete gestion_sede.Especialidad where id = 3
+go
+Delete gestion_sede.Especialidad where id = 4
+go
+Delete gestion_sede.Especialidad where id = 5
+go
+Select * from gestion_sede.Especialidad
+go
+
+-- BorrarReservaTurno
+
+EXEC gestion_turno.BorrarReservaTurno 77
+go
+Select * from gestion_turno.ReservaTurno -- 77 borrado logico en 1 -> OK
+go
+EXEC gestion_turno.BorrarReservaTurno 86 -- No existe la reserva -> OK
+go
+
+-- Vaciar tabla ReservaTurno
+
+Delete gestion_turno.ReservaTurno where id = 77
+go
+Delete gestion_turno.ReservaTurno where id = 78
+go
+Delete gestion_turno.ReservaTurno where id = 79
+go
+Delete gestion_turno.ReservaTurno where id = 80
+go
+Delete gestion_turno.ReservaTurno where id = 81
+go
+Delete gestion_turno.ReservaTurno where id = 82
+go
+Select * from gestion_turno.ReservaTurno
+go
+
+-- Ahora puedo vaciar las tablas TipoTurno y EstadoTurno (borrado fisico)
+
+EXEC gestion_turno.EliminarTipoTurno 10 --> OK
+go
+EXEC gestion_turno.EliminarTipoTurno 11 --> OK
+go
+Select * from gestion_turno.TipoTurno
+go
+EXEC gestion_turno.EliminarTipoTurno 9 -- No existe el tipo turno -> OK
+go
+
+
+EXEC gestion_turno.BorrarEstadoTurno 600 -- Disponible
+go
+EXEC gestion_turno.BorrarEstadoTurno 602 -- Ausente
+go
+Select * from gestion_turno.EstadoTurno -- 600 y 602 ya no están
+go
+EXEC gestion_turno.BorrarEstadoTurno 600 -- Ya no existe el estado Disponible -> OK
+go
+EXEC gestion_turno.BorrarEstadoTurno 560 -- No existe el estado 560 -> OK
+go
+EXEC gestion_turno.BorrarEstadoTurno 601 -- Cancelado
+go
+EXEC gestion_turno.BorrarEstadoTurno 603 -- Atendido
+go
+EXEC gestion_turno.BorrarEstadoTurno 604 -- Pendiente
+go
+Select * from gestion_turno.EstadoTurno -- Vacía -> OK
+go
+
+-- Ahora puedo vaciar tabla Paciente
+/*
+Delete gestion_paciente.Paciente where id = 1
+go
+Delete gestion_paciente.Paciente where id = 2
+go
+Delete gestion_paciente.Paciente where id = 3
+go
+Delete gestion_paciente.Paciente where id = 4
+go
+Delete gestion_paciente.Paciente where id = 5
+go
+Delete gestion_paciente.Paciente where id = 6
+go
+Select * from gestion_paciente.Paciente
+go
+*/
