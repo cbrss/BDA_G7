@@ -10,7 +10,6 @@
 		FECHA DE ENTREGA: 14/6/2024
 */
 
----- CREACION BASE DE DATOS
 
 IF NOT EXISTS (
 	SELECT 1
@@ -23,10 +22,9 @@ BEGIN
 END
 go
 
+
 USE Com5600G07
 GO
----- CREACION ESQUEMAS
-
 
 IF NOT EXISTS (
 	SELECT 1
@@ -58,6 +56,9 @@ BEGIN
 END;
 GO
 
+
+USE Com5600G07
+GO
 
 --- CREACION DE TABLAS DEL ESQUEMA GESTION_PACIENTE
 
@@ -92,13 +93,35 @@ BEGIN
 		usr_actualizacion	VARCHAR(20),
 		borrado_logico		BIT DEFAULT 0,
 
-		CONSTRAINT Ck_PacientNomb		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_PacientApell		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
-		CONSTRAINT Ck_PacientApellMat	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0),
-		CONSTRAINT Ck_PacientTipoDoc	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
-		CONSTRAINT Ck_PacientSexo		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0),
-		CONSTRAINT Ck_PacientGenero		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
-		CONSTRAINT Ck_PacientNacion		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0),
+		CONSTRAINT Ck_PacienteNombre			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+													AND LEN(nombre) <= 30
+												),
+		CONSTRAINT Ck_PacienteApellido			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0
+													AND LEN(apellido) <= 30
+												),
+		CONSTRAINT Ck_PacienteApellidoMaterno	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido_materno) = 0
+													AND LEN(apellido_materno) <= 30
+												),
+		CONSTRAINT Ck_PacienteTipoDoc			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', tipo_doc) = 0),
+		CONSTRAINT Ck_PacienteSexo				CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', sexo) = 0
+													AND LEN(sexo) <= 11
+												),
+		CONSTRAINT Ck_PacienteGenero			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', genero) = 0),
+		CONSTRAINT Ck_PacienteNacionalidad		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nacionalidad) = 0
+													AND LEN(nacionalidad) <= 20
+												),
+		CONSTRAINT Ck_PacienteMail				CHECK(mail LIKE '%_@_%.__%'
+													AND LEN(mail) <= 30
+												),
+		CONSTRAINT Ck_PacienteTelFijo			CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_fijo) <= 15
+												),
+		CONSTRAINT Ck_PacienteTelAlt			CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_alt) <= 15
+												),
+		CONSTRAINT Ck_PacienteTelLaboral		CHECK(tel_fijo LIKE '(%_) %-%'
+													AND LEN(tel_laboral) <= 15
+												),
 		CONSTRAINT PK_PacienteID PRIMARY KEY (id)
 	);
 END;
@@ -119,13 +142,16 @@ BEGIN
 		id					INT,
 		id_paciente			INT,
 		fecha				DATE,
-		nombre_estudio		VARCHAR(50),
+		nombre				VARCHAR(100),
 		autorizado			BIT DEFAULT 0,
 		doc_resultado		VARCHAR(max),
 		img_resultado		VARCHAR(max),
 		borrado_logico		BIT DEFAULT 0,
 
-		CONSTRAINT PK_EstudioID PRIMARY KEY(id),
+		CONSTRAINT Ck_EstudioNombre		CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+													AND LEN(nombre) <= 100
+												),
+		CONSTRAINT PK_EstudioID			 PRIMARY KEY(id),
 		CONSTRAINT FK_Estudio_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
 END;
@@ -148,6 +174,7 @@ BEGIN
 		contrasena			VARCHAR(30),
 		fecha_creacion		DATE,
 
+		CONSTRAINT Ck_UsuarioContrasena		CHECK(LEN(contrasena) <= 30),
 		CONSTRAINT PK_UsuarioID PRIMARY KEY(id),
 		CONSTRAINT FK_Usuario_PacienteID FOREIGN KEY(id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -174,12 +201,16 @@ BEGIN
 		cod_postal			INT,
 		pais				VARCHAR(30),
 		provincia			VARCHAR(30),
-		localidad			VARCHAR(30),
+		localidad			VARCHAR(50),
 		
-		CONSTRAINT Ck_DomicCalle CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', calle) = 0),
-		CONSTRAINT Ck_DomicPais CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0),
-		CONSTRAINT Ck_DomicProv CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
-		CONSTRAINT Ck_DomicLocalidad CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', localidad) = 0),
+		CONSTRAINT Ck_DomicilioCalle		CHECK(LEN(calle) <= 30),
+		CONSTRAINT Ck_DomicilioPais			CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', pais) = 0
+													AND LEN(pais) <= 30
+												),
+		CONSTRAINT Ck_DomicilioProvincia	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0	
+													AND LEN(provincia) <= 30
+												),
+		CONSTRAINT Ck_DomicilioLocalidad	CHECK(LEN(localidad) <= 50),
 		CONSTRAINT PK_DomicilioID PRIMARY KEY (id),
 		CONSTRAINT FK_Domicilio_PacienteID FOREIGN KEY (id_paciente) REFERENCES gestion_paciente.Paciente(id)
 	);
@@ -223,11 +254,14 @@ BEGIN
     CREATE TABLE gestion_paciente.Prestador
 	(
 		id					INT IDENTITY (1,1),
-		id_cobertura		INT	UNIQUE,
+		id_cobertura		INT,
 		nombre				VARCHAR(30),
 		[plan]				VARCHAR(30),
 
-		CONSTRAINT Ck_Prestanomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		
+		CONSTRAINT Ck_PrestadorNombre	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+											AND	LEN(nombre) <= 30),
+		CONSTRAINT Ck_PrestadorPlan		CHECK(LEN([plan]) <= 30),
 		CONSTRAINT PK_PrestadorID PRIMARY KEY (id),
 		CONSTRAINT FK_Prestador_CoberturaID FOREIGN KEY (id_cobertura) REFERENCES gestion_paciente.Cobertura(id)
 	);
@@ -250,8 +284,10 @@ BEGIN
 		id		INT,
 		nombre	VARCHAR(11),-- Disponible, Atendido Ausente Cancelado
 
-		CONSTRAINT Ck_EstadoTurnoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT PK_estadoID PRIMARY KEY(id)
+
+		CONSTRAINT Ck_EstadoTurnoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 11),
+		CONSTRAINT PK_EstadoTurnoID PRIMARY KEY(id)
 	)
 END
 GO
@@ -269,7 +305,10 @@ BEGIN
 	(
 		id		INT,
 		nombre	VARCHAR(11), -- Presencial Virtual
-		CONSTRAINT PK_tipoID PRIMARY KEY(id)
+
+		CONSTRAINT Ck_TipoTurno	CHECK(nombre IN ('Presencial', 'Virtual')
+											AND	LEN(nombre) <= 11),
+		CONSTRAINT PK_TipoTurnoID PRIMARY KEY(id)
 	)
 END
 GO
@@ -301,8 +340,22 @@ BEGIN
 END
 GO
 
-
-
+--- Esta tabla sirve para el item de disponibilidad que pide el enunciad
+--- la idea es que se ejecute el procedimiento de importacion de disponibilidad y se cargue esta tabla
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Disponibilidad'
+    AND schema_id = SCHEMA_ID('gestion_turno')
+)
+BEGIN
+	CREATE TABLE gestion_turno.Disponibilidad(
+	id_medico			INT,
+	id_especialidad		INT,
+	id_sede_atencion	INT,
+	disponible			CHAR(2)
+	)
+END
 
 
 --- CREACION DE TABLAS DEL ESQUEMA GESTION_SEDE
@@ -323,8 +376,13 @@ BEGIN
 		 localidad			VARCHAR(30),
 		 provincia			VARCHAR(30),
 
-		CONSTRAINT Ck_Sedenomb CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_Sedeprov CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0),
+		
+		CONSTRAINT Ck_SedeNombre	CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 30),
+		CONSTRAINT Ck_SedeDireccion	CHECK(LEN(direccion) <= 30),
+		CONSTRAINT Ck_SedeLocalidad	CHECK(LEN(localidad) <= 30),
+		CONSTRAINT Ck_SedeProvincia CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', provincia) = 0
+										AND LEN(provincia) <= 30),
 		CONSTRAINT PK_SedeID PRIMARY KEY (id)
 	 )
 END
@@ -343,7 +401,9 @@ BEGIN
 		id			INT	IDENTITY(1,1),
 		nombre		VARCHAR(30),
 
-		CONSTRAINT Ck_Espnombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
+		
+		CONSTRAINT Ck_EspecialidadNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+											AND LEN(nombre) <= 30),
 		CONSTRAINT PK_EspecialidadID PRIMARY KEY (id)
 	 );
 END;
@@ -366,8 +426,11 @@ BEGIN
 		matricula			INT UNIQUE,
 		id_especialidad		INT,
 
-		CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0),
-		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0),
+		
+		CONSTRAINT CK_MedicoNombre CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', nombre) = 0
+										AND LEN(nombre) <= 30),
+		CONSTRAINT Ck_MedicoApellido CHECK(PATINDEX('%[^A-Za-zÁÉÍÓÚáéíóú ]%', apellido) = 0
+										AND LEN(apellido) <= 30),
 		CONSTRAINT PK_MedicoID			PRIMARY KEY (id),
 		CONSTRAINT FK_EspecialidadID	FOREIGN KEY (id_especialidad) REFERENCES gestion_sede.Especialidad(id)
 	 );
@@ -391,7 +454,9 @@ BEGIN
 		 dia				DATE,
 		 hora_inicio		TIME,
 
-	 CONSTRAINT PK_DiasxsedeID		PRIMARY KEY (id),
+	 CONSTRAINT CK_DiasXSedeHoraInicio CHECK(DATEPART(MINUTE, hora_inicio) IN (0, 15, 30, 45)),
+
+	 CONSTRAINT PK_DiasXSedeID		PRIMARY KEY (id),
 	 CONSTRAINT FK_SedeID			FOREIGN KEY (id_sede)			REFERENCES gestion_sede.Sede (id),
 	 CONSTRAINT FK_MedicoID			FOREIGN KEY (id_medico)			REFERENCES gestion_sede.Medico (id),
 	 CONSTRAINT FK_ReservaTurnoID	FOREIGN KEY (id_reserva_turno)	REFERENCES gestion_turno.ReservaTurno (id)
@@ -400,9 +465,53 @@ END;
 GO
 
 
+USE Com5600G07
+GO
+
 ---- CREACION FUNCIONES AUXILIARES PARA LOS STORE PROCEDURES
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
+CREATE OR ALTER PROCEDURE gestion_turno.CargarDisponibilidad (
+	@p_ruta	VARCHAR(max)
+)
+AS
+BEGIN
+    set nocount on
+	CREATE TABLE #CsvDisponibilidad (
+        id_medico INT,
+        id_especialidad INT,
+        id_sede_atencion INT,
+        disponible VARCHAR(2)
+    );
+	
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvDisponibilidad
+											FROM ''' + @p_ruta + ''' 
+											WITH (
+												FIELDTERMINATOR = '';'',
+												ROWTERMINATOR = ''\n'',
+												CODEPAGE = ''65001'',
+												FIRSTROW = 2
+											);'
+	EXEC sp_executesql @consulta_sql
+	INSERT INTO gestion_turno.Disponibilidad (id_medico, id_especialidad, id_sede_atencion, disponible)
+    SELECT id_medico, id_especialidad, id_sede_atencion, disponible
+    FROM #CsvDisponibilidad
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM gestion_turno.Disponibilidad d
+        WHERE d.id_medico = #CsvDisponibilidad.id_medico
+        AND d.id_especialidad = #CsvDisponibilidad.id_especialidad
+        AND d.id_sede_atencion = #CsvDisponibilidad.id_sede_atencion
+    );
+
+    DROP TABLE #CsvDisponibilidad;
+END
+GO
+
+
+EXEC gestion_turno.CargarDisponibilidad
+	@p_ruta	= 'D:\BDA_TALLER\BDA_tp\casos_de_prueba\Disponibilidad.csv'
+GO
 
 CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 	@p_id_medico			INT, 
@@ -412,132 +521,36 @@ CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 )
 AS
 BEGIN
-    SET @r_disponiblidad = CAST(RAND() + 0.5 AS INT)
+    set nocount on
+	
+	DECLARE @disponible CHAR(2)
+
+	SELECT @disponible = @disponible
+	FROM gestion_turno.Disponible
+	WHERE id_medico = @p_id_medico
+		AND id_especialidad = @p_id_especialidad
+		AND id_sede_atencion = @p_id_sede_atencion;
+	IF @disponible = 'si'
+		SET @r_disponiblidad = 1;
+	ELSE
+		SET @r_disponiblidad = 0;
+END
+GO
+	
+
+--- FUNCIONES AUXILIARES PARA IMPORTACION
+
+CREATE OR ALTER FUNCTION gestion_Sede.BuscarIdEspecialidad (@p_nombre VARCHAR(30))
+RETURNS INT
+BEGIN
+	DECLARE @r_id INT
+
+	SET @r_id = (SELECT id FROM gestion_sede.Especialidad WHERE nombre = @p_nombre)
+
+	RETURN @r_id
 END
 GO
 
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE PACIENTES
-
-CREATE OR ALTER FUNCTION gestion_paciente.ExistePaciente(
-	@p_nombre				VARCHAR(30),
-	@p_apellido				VARCHAR(30),
-	@p_fecha_nac			DATE,
-	@p_tipo_doc				CHAR(5),
-	@p_num_doc				INT,
-	@p_sexo					VARCHAR(11),
-	@p_genero				VARCHAR(9),
-	@p_nacionalidad			VARCHAR(20)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_paciente.Paciente
-		WHERE nombre			= @p_nombre
-			AND	apellido		= @p_apellido
-			AND	fecha_nac		= @p_fecha_nac
-			AND tipo_doc		= @p_tipo_doc
-			AND num_doc			= @p_num_doc
-			AND nacionalidad	= @p_nacionalidad
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE MEDICOS
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteMedico (
-	@p_nombre			VARCHAR(30),
-	@p_apellido			VARCHAR(30),
-	@p_matricula		INT,
-	@p_id_especialidad	INT
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Medico
-		WHERE nombre = @p_nombre
-			AND	apellido = @p_apellido
-			AND	matricula = @p_matricula
-			AND id_especialidad = @p_id_especialidad
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteEspecialidad (@p_nombre VARCHAR(20)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Especialidad
-		WHERE nombre			= @p_nombre
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
---- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA INSERCION DE SEDES
-
-CREATE OR ALTER FUNCTION gestion_sede.ExisteSede (
-	@p_nombre			VARCHAR(30),
-	@p_direccion		VARCHAR(30),
-	@p_localidad		VARCHAR(30),
-	@p_provincia		VARCHAR(30)
-)
-RETURNS BIT
-BEGIN
-	DECLARE @r_existe BIT
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre = @p_nombre
-			AND	direccion = @p_direccion
-			AND	localidad = @p_localidad
-			AND provincia = @p_provincia
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-	ELSE
-	BEGIN
-		SET @r_existe = 0
-	END
-
-	RETURN @r_existe
-END
-GO	
-
---- FUNCIONES AUXILIARES PARA IMPORTACION
 
 CREATE OR ALTER FUNCTION gestion_paciente.ParsearDomicilio (@p_domicilio VARCHAR(50))
 RETURNS @r_domicilio TABLE(
@@ -604,7 +617,6 @@ BEGIN
 	SET @p_apellido = LTRIM(@p_apellido)
 	SET @auxiliar = LOWER(@p_apellido)
 	
-
 	
 	IF PATINDEX('de %', @auxiliar) > 0 OR PATINDEX('del %',@auxiliar) > 0
 	BEGIN
@@ -636,100 +648,14 @@ END
 GO	
 
 
+USE Com5600G07
+GO
+
 ---- CREACION STORE PROCEDURES ESQUEMA GESTION PACIENTE
 
 --- CREACION STORE PROCEDURES PACIENTE
 
--- ACTUALIZAR PACIENTE
-
-CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPaciente
-    @p_id                   INT,
-    @p_nombre               VARCHAR(30) = NULL,
-    @p_apellido             VARCHAR(30) = NULL,
-    @p_apellido_materno     VARCHAR(30) = NULL,
-    @p_fecha_nac            DATE		= NULL,
-    @p_tipo_doc             CHAR(5)		= NULL,
-    @p_num_doc              INT			= NULL,
-    @p_sexo                 VARCHAR(11) = NULL,
-    @p_genero               VARCHAR(9)	= NULL,
-    @p_nacionalidad         VARCHAR(30) = NULL,
-    @p_foto_perfil          VARCHAR(MAX)= NULL,
-    @p_mail                 VARCHAR(30) = NULL,
-    @p_tel_fijo             VARCHAR(15) = NULL,
-    @p_tel_alt              VARCHAR(15) = NULL,
-    @p_tel_laboral          VARCHAR(15) = NULL,
-	@p_borrado_logico		BIT			= NULL
-AS
-BEGIN
-
-	DECLARE
-		@nombre					VARCHAR(30),
-		@apellido				VARCHAR(30),
-		@apellido_materno		VARCHAR(30),
-		@fecha_nac				DATE,
-		@tipo_doc				CHAR(5),
-		@num_doc				INT,
-		@sexo					VARCHAR(11),
-		@genero					VARCHAR(9),
-		@nacionalidad			VARCHAR(30),
-		@foto_perfil			VARCHAR(max),
-		@mail					VARCHAR(30),
-		@tel_fijo				VARCHAR(15),
-		@tel_alt				VARCHAR(15),
-		@tel_laboral			VARCHAR(15),
-		@borrado_logico			BIT
-	SELECT
-		@nombre					= nombre,
-		@apellido				= apellido,
-		@apellido_materno		= apellido_materno,
-		@fecha_nac				= fecha_nac,
-		@tipo_doc				= tipo_doc,
-		@num_doc				= num_doc,
-		@sexo					= sexo,
-		@genero					= genero,
-		@nacionalidad			= nacionalidad,
-		@foto_perfil			= foto_perfil,
-		@mail					= mail,
-		@tel_fijo				= tel_fijo,
-		@tel_alt				= tel_alt,
-		@tel_laboral			= tel_laboral,
-		@borrado_logico			= borrado_logico
-	FROM gestion_paciente.Paciente
-	WHERE id = @p_id
-
-	UPDATE gestion_paciente.Paciente
-	SET	
-		nombre					= ISNULL(@p_nombre, @nombre),
-        apellido				= ISNULL(@p_apellido, @apellido),
-        apellido_materno		= ISNULL(@p_apellido_materno, @apellido_materno),
-        fecha_nac				= ISNULL(@p_fecha_nac, @fecha_nac),
-        tipo_doc				= ISNULL(@p_tipo_doc, @tipo_doc),
-        num_doc					= ISNULL(@p_num_doc, @num_doc),
-        sexo					= ISNULL(@p_sexo, @sexo),
-        genero					= ISNULL(@p_genero, @genero),
-        nacionalidad			= ISNULL(@p_nacionalidad, @nacionalidad),
-        foto_perfil				= ISNULL(@p_foto_perfil, @foto_perfil),
-        mail					= ISNULL(@p_mail, @mail),
-        tel_fijo				= ISNULL(@p_tel_fijo, @tel_fijo),
-        tel_alt					= ISNULL(@p_tel_alt, @tel_alt),
-        tel_laboral				= ISNULL(@p_tel_laboral, @tel_laboral),
-		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico),
-        fecha_actualizacion		= GETDATE(),
-		usr_actualizacion		= ORIGINAL_LOGIN()
-	WHERE id = @p_id
-END;
-GO
-
 -- INSERTAR PACIENTE
--- los "fecha" siempre van con un getDate, el usr actualizacion es cuando se crea el usuario y asignamos el nombre ahi
--- los NULL son porque en la estructura de los archivos a importar no son valores dados.
--- el null en p_id es un caso especifico, es identity por lo tanto, no deberia poder enviarse
--- pero al manejar borrado logico, es de esperar que algun operador del hospital envie algun ID de un archivo fisico que ellos tengan del paciente
--- donde se vea el id que se le fue asignado, por lo tanto existen 2 casos:
---	el id es importado, por lo tanto, se utiliza identity y se inserta directamente
---	el id es ingresado por operador, por lo tanto, se valida que exista dicho paciente previo a intentar insertarlo
-
--- @p_id_identity es para la importacion de archivos, contiene el ID generado por identity (obtenido de SCOPE_IDENTITY())
 
 CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id					INT				= NULL,
@@ -750,6 +676,8 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPaciente
 	@p_id_identity			INT				= NULL OUTPUT 
 AS
 BEGIN
+	set nocount on
+	BEGIN TRY
 	DECLARE @existe			BIT
 	DECLARE @borrado		BIT
 
@@ -787,7 +715,10 @@ BEGIN
 				@p_borrado_logico		= 0
     END
     ELSE IF @existe = 1									--	CASO: el paciente ya esta registrado 
+	BEGIN
+		PRINT 'Error: El paciente ya esta registrado'
 		RETURN
+	END
 	ELSE
     BEGIN												--	CASO: el operador de la clinica ingresa un nuevo paciente
         INSERT INTO gestion_paciente.Paciente (
@@ -830,9 +761,30 @@ BEGIN
         );
 		SET @p_id_identity = SCOPE_IDENTITY()
     END
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error	NVARCHAR(1000) = ERROR_MESSAGE()
+		DECLARE @mensaje	NVARCHAR(1000) 
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PacienteNombre', @Error) > 0 THEN 'Nombre invalido.'
+			WHEN CHARINDEX('Ck_PacienteApellido', @Error) > 0 THEN 'Apellido invalido.'
+			WHEN CHARINDEX('Ck_PacienteApellidoMaterno', @Error) > 0 THEN 'Apellido materno invalido.'
+			WHEN CHARINDEX('Ck_PacienteTipoDoc', @Error) > 0 THEN 'Tipo de documento invalido.'
+			WHEN CHARINDEX('Ck_PacienteSexo', @Error) > 0 THEN 'Sexo invalido.'
+			WHEN CHARINDEX('Ck_PacienteGenero', @Error) > 0 THEN 'Genero invalido.'
+			WHEN CHARINDEX('Ck_PacienteNacionalidad', @Error) > 0 THEN 'Nacionalidad invalida.'
+			WHEN CHARINDEX('Ck_PacienteMail', @Error) > 0 THEN 'Mail invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelFijo', @Error) > 0 THEN 'Telefono fijo invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelAlt', @Error) > 0 THEN 'Telefono alternativo invalido.'
+			WHEN CHARINDEX('Ck_PacienteTelLaboral', @Error) > 0 THEN 'Telefono laboral invalido.'
+			ELSE ' No identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
-
 
 -- BORRAR PACIENTE
 
@@ -841,6 +793,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPaciente
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
 	UPDATE gestion_paciente.Paciente
 	SET	borrado_logico = 1
 	WHERE id = @p_id;
@@ -848,6 +810,7 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET	usr_actualizacion = ORIGINAL_LOGIN()
 	WHERE id = @p_id;
+
 END;
 GO
 
@@ -861,11 +824,13 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarEstudio
 	@p_id				INT,
 	@p_id_paciente		INT,
 	@p_fecha			DATE,
-	@p_nombre_estudio	VARCHAR(50),
+	@p_nombre	VARCHAR(50),
 	@p_doc_resultado	VARCHAR(max),
 	@p_img_resultado	VARCHAR(max)
 AS
 BEGIN
+	set nocount on
+	BEGIN TRY
 	IF EXISTS (
         SELECT 1
         FROM gestion_paciente.Estudio
@@ -879,23 +844,36 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO gestion_paciente.Estudio (
-            id,
-            id_paciente,
-            fecha,
-            nombre_estudio,
-            doc_resultado,
-            img_resultado
-        )
-        VALUES (
-            @p_id,
-            @p_id_paciente,
-            @p_fecha,
-            @p_nombre_estudio,
-            @p_doc_resultado,
-            @p_img_resultado
-        );
-    END
+			INSERT INTO gestion_paciente.Estudio (
+				id,
+				id_paciente,
+				fecha,
+				nombre,
+				doc_resultado,
+				img_resultado
+			)
+			VALUES (
+				@p_id,
+				@p_id_paciente,
+				@p_fecha,
+				@p_nombre,
+				@p_doc_resultado,
+				@p_img_resultado
+			);
+	END
+
+	END TRY
+
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstudioNombre', @Error) > 0 THEN 'Nombre de estudio invalido.'
+			ELSE 'Error no identificado'
+		END
+	PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -905,19 +883,30 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarEstudio
     @p_id                   INT,
     @p_id_paciente          INT,
     @p_fecha                DATE			= NULL,
-    @p_nombre_estudio       VARCHAR(50)	= NULL,
+    @p_nombre				VARCHAR(50)		= NULL,
     @p_doc_resultado        VARCHAR(MAX)	= NULL,
     @p_img_resultado        VARCHAR(MAX)	= NULL	
 AS
 BEGIN
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Estudio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
+	BEGIN TRY
 	DECLARE
 		@fecha				DATE,
-		@nombre_estudio		VARCHAR(50),
+		@nombre				VARCHAR(50),
 		@doc_resultado		VARCHAR(MAX),
 		@img_resultado		VARCHAR(MAX)
 	SELECT
 		@fecha				= fecha,
-		@nombre_estudio		= nombre_estudio,
+		@nombre				= nombre,
 		@doc_resultado		= doc_resultado,
 		@img_resultado		= img_resultado
 	FROM gestion_paciente.Estudio
@@ -926,10 +915,22 @@ BEGIN
     UPDATE gestion_paciente.Estudio
     SET
         fecha				= ISNULL(@p_fecha, @fecha),
-        nombre_estudio		= ISNULL(@p_nombre_estudio, @nombre_estudio),
+        nombre				= ISNULL(@p_nombre, @nombre),
         doc_resultado		= ISNULL(@p_doc_resultado, @doc_resultado),
         img_resultado		= ISNULL(@p_img_resultado, @img_resultado)
     WHERE id = @p_id;
+	END TRY
+
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstudioNombre', @Error) > 0 THEN 'Nombre de estudio invalido.'
+			ELSE 'Error no identificado'
+		END
+	PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -940,6 +941,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarEstudio
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Estudio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estudio no existe'
+		RETURN
+	END
 	UPDATE gestion_paciente.Estudio
 	SET	borrado_logico = 1
 	WHERE id = @p_id;
@@ -957,6 +968,8 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarUsuario
 	@p_contrasena		VARCHAR(30)
 AS
 BEGIN
+	set nocount on
+	BEGIN TRY
 	INSERT INTO gestion_paciente.Usuario (
 		id,
 		id_paciente,
@@ -973,6 +986,17 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET	usr_actualizacion = GETDATE()
 	WHERE id = @p_id_paciente
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_UsuarioContrasena', @Error) > 0 THEN 'Contraseña invalida.'
+			ELSE 'Error no identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
 
@@ -985,7 +1009,17 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarUsuario
     @p_fecha_creacion	VARCHAR(MAX)	= NULL
 AS
 BEGIN
-
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Usuario
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El usuario no existe'
+		RETURN
+	END
+	BEGIN TRY
 	DECLARE
 		@id_paciente	INT,
 		@contrasena		VARCHAR(30)
@@ -1005,6 +1039,18 @@ BEGIN
 	UPDATE gestion_paciente.Paciente
 	SET usr_actualizacion = GETDATE()
 	WHERE id = ISNULL(@p_id_paciente, @id_paciente)
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_UsuarioContrasena', @Error) > 0 THEN 'Contraseña invalida.'
+			ELSE 'Error no identificado'
+		END
+		PRINT 'Error en el campo: ' + @mensaje
+	END CATCH
 END;
 GO
 
@@ -1015,6 +1061,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarUsuario
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Usuario
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El usuario no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Usuario
 	WHERE id = @p_id;
 END;
@@ -1036,9 +1092,11 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarDomicilio
     @p_cod_postal INT		=	NULL,
     @p_pais VARCHAR(30),
     @p_provincia VARCHAR(30),
-    @p_localidad VARCHAR(30)
+    @p_localidad VARCHAR(50)
 AS
 BEGIN
+	set nocount on
+	BEGIN TRY
     INSERT INTO gestion_paciente.Domicilio (
         id_paciente,
         calle,
@@ -1061,6 +1119,21 @@ BEGIN
         @p_provincia,
         @p_localidad
     );
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_DomicilioCalle', @Error) > 0 THEN 'Calle invalida.'
+			WHEN CHARINDEX('Ck_DomicilioPais', @Error) > 0 THEN 'Pais invalido.'
+			WHEN CHARINDEX('Ck_DomicilioProvincia', @Error) > 0 THEN 'Provincia invalida.'
+			WHEN CHARINDEX('Ck_DomicilioLocalidad', @Error) > 0 THEN 'Localidad invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -1075,9 +1148,10 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarDomicilio
     @p_cod_postal   INT			= NULL,
     @p_pais         VARCHAR(30) = NULL,
     @p_provincia    VARCHAR(30) = NULL,
-    @p_localidad    VARCHAR(30) = NULL
+    @p_localidad    VARCHAR(50) = NULL
 AS
 BEGIN
+	set nocount on
 
 	DECLARE
 		@calle          VARCHAR(30),
@@ -1087,7 +1161,7 @@ BEGIN
 		@cod_postal     INT,
 		@pais           VARCHAR(30),
 		@provincia      VARCHAR(30),
-		@localidad      VARCHAR(30)
+		@localidad      VARCHAR(50)
 
 	SELECT
 		@calle          = calle,
@@ -1101,6 +1175,7 @@ BEGIN
 	FROM gestion_paciente.Domicilio
 	WHERE id = @p_id
 
+	BEGIN TRY
 	UPDATE gestion_paciente.Domicilio
 	SET	
 		calle			= ISNULL(@p_calle, @calle),
@@ -1112,16 +1187,42 @@ BEGIN
 		provincia		= ISNULL(@p_provincia, @provincia),
 		localidad		= ISNULL(@p_localidad, @localidad)
 	WHERE id = @p_id
+
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_DomicilioCalle', @Error) > 0 THEN 'Calle invalida.'
+			WHEN CHARINDEX('Ck_DomicilioPais', @Error) > 0 THEN 'Pais invalido.'
+			WHEN CHARINDEX('Ck_DomicilioProvincia', @Error) > 0 THEN 'Provincia invalida.'
+			WHEN CHARINDEX('Ck_DomicilioLocalidad', @Error) > 0 THEN 'Localidad invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
 
 -- BORRAR DOMICILIO
 
-CREATE OR ALTER PROCEDURE gestion_paciente.BorrarDomicilio
+CREATE OR ALTER PROCEDURE gestion_paciente.uBorrarDomicilio
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Domicilio
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El domicilio no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Domicilio
 	WHERE id = @p_id;
 END;
@@ -1141,6 +1242,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarCobertura
     @p_fecha_registro		DATE
 AS
 BEGIN
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id_paciente = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: Ya existe la cobertura ingresada'
+		RETURN
+	END
     INSERT INTO gestion_paciente.Cobertura (
         id,
         id_paciente,
@@ -1169,6 +1280,16 @@ END;
     @p_fecha_registro       DATE			= NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la cobertura ingresada'
+		RETURN
+	END
     DECLARE
         @id_paciente            INT,
         @imagen_credencial      VARCHAR(max),
@@ -1200,6 +1321,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarCobertura
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Cobertura
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la cobertura ingresada'
+		RETURN
+	END
 	DELETE gestion_paciente.Cobertura
 	WHERE id = @p_id;
 END;
@@ -1216,15 +1347,17 @@ CREATE OR ALTER PROCEDURE gestion_paciente.InsertarPrestador
     @p_plan				VARCHAR(30)
 AS
 BEGIN
-
+	set nocount on
 	IF EXISTS (														--	CASO: se ingresa duplicado
 		SELECT 1
 		FROM gestion_paciente.Prestador
 		WHERE [plan] = @p_plan AND nombre = @p_nombre
 	)
 	BEGIN
+		PRINT 'Error: El prestador ya fue ingresado'
 		RETURN
 	END
+	BEGIN TRY
 
 	IF @p_id_cobertura IS NULL										--	CASO: se importa prestadores y estos no tienen dichos ids
 	BEGIN
@@ -1248,6 +1381,20 @@ BEGIN
         @p_nombre,
         @p_plan
     );
+
+	END TRY
+		BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PrestadorNombre', @Error) > 0 THEN 'Nombre del prestador invalido.'
+			WHEN CHARINDEX('Ck_PrestadorPlan', @Error) > 0 THEN 'Plan del prestador invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -1261,6 +1408,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ActualizarPrestador
     @p_plan				VARCHAR(30)		= NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Prestador
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El prestador no existe'
+		RETURN
+	END
     DECLARE
         @id_cobertura		INT,
         @nombre_prestador	VARCHAR(30),
@@ -1272,13 +1429,27 @@ BEGIN
         @plan_prestador		= [plan]
     FROM gestion_paciente.Prestador
     WHERE id = @p_id
-
+	
+	BEGIN TRY
     UPDATE gestion_paciente.Prestador
     SET
         id_cobertura		= ISNULL(@p_id_cobertura, @id_cobertura),
         nombre				= ISNULL(@p_nombre, @nombre_prestador),
         [plan]				= ISNULL(@p_plan, @plan_prestador)
     WHERE id = @p_id
+	END TRY
+		BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_PrestadorNombre', @Error) > 0 THEN 'Nombre del prestador invalido.'
+			WHEN CHARINDEX('Ck_PrestadorPlan', @Error) > 0 THEN 'Plan del prestador invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -1289,6 +1460,16 @@ CREATE OR ALTER PROCEDURE gestion_paciente.BorrarPrestador
 	@p_id INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Prestador
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El prestador no existe'
+		RETURN
+	END
 	DELETE gestion_paciente.Prestador
 	WHERE id = @p_id;
 END;
@@ -1299,31 +1480,6 @@ GO
 
 --- CREACION STORE PROCEDURES SEDE
 
--- BUSCAR SEDE
-
-CREATE OR ALTER PROCEDURE gestion_sede.ExisteSede
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30),
-	@r_existe		BIT	OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Sede
-		WHERE nombre = @p_nombre
-			AND direccion = @p_direccion
-			AND localidad = @p_localidad
-			AND provincia = @p_provincia
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO
 
 -- ACTUALIZAR SEDE
 
@@ -1335,6 +1491,16 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarSede
 	@p_provincia	VARCHAR(30) = NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La sede no existe'
+		RETURN
+	END
 
 	DECLARE
 		@nombre		INT,
@@ -1348,14 +1514,29 @@ BEGIN
 		@provincia	= provincia
 	FROM gestion_sede.Sede
 	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.Sede
+		SET
+			nombre			= ISNULL(@p_nombre, @nombre),
+			direccion		= ISNULL(@p_direccion, @direccion),
+			localidad		= ISNULL(@p_localidad, @localidad),
+			provincia		= ISNULL(@p_provincia, @provincia)
+		WHERE id = @p_id;
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
-    UPDATE gestion_sede.Sede
-    SET
-        nombre			= ISNULL(@p_nombre, @nombre),
-        direccion		= ISNULL(@p_direccion, @direccion),
-        localidad		= ISNULL(@p_localidad, @localidad),
-        provincia		= ISNULL(@p_provincia, @provincia)
-    WHERE id = @p_id;
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_SedeNombre', @Error) > 0 THEN 'Nombre de la sede invalido.'
+			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Direccion de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeLocalidad', @Error) > 0 THEN 'Localidad de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeProvincia', @Error) > 0 THEN 'Provincia de la sede invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1363,45 +1544,53 @@ GO
 
 CREATE OR ALTER PROCEDURE gestion_sede.InsertarSede
 	@p_id			INT			= NULL,
-	@p_nombre		VARCHAR(30),
-	@p_direccion	VARCHAR(30),
-	@p_localidad	VARCHAR(30),
-	@p_provincia	VARCHAR(30)
+	@p_nombre		VARCHAR(31),
+	@p_direccion	VARCHAR(31),
+	@p_localidad	VARCHAR(31),
+	@p_provincia	VARCHAR(31)
 AS
 BEGIN
-	DECLARE @existe BIT
-
-	EXEC gestion_sede.ExisteSede
-		@p_nombre		= @p_nombre,
-		@p_direccion	= @p_direccion,
-		@p_localidad	= @p_localidad,
-		@p_provincia	= @p_provincia,
-		@r_existe		= @existe OUTPUT
-
-	IF @existe = 1
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE direccion = @p_direccion
+		AND localidad = @p_localidad
+		AND provincia = @p_provincia
+	)
 	BEGIN
-		EXEC gestion_sede.ActualizarSede
-			@p_id			= @p_id,
-			@p_nombre		= @p_nombre,
-			@p_direccion	= @p_direccion,
-			@p_localidad	= @p_localidad,
-			@p_provincia	= @p_provincia
+		PRINT 'Error: La sede ya existe'
+		RETURN
 	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Sede (
-			nombre,
-			direccion,
-			localidad,
-			provincia
-		)
-		VALUES (
-			@p_nombre,
-			@p_direccion,
-			@p_localidad,
-			@p_provincia
-		)
-	END
+
+	BEGIN TRY
+	INSERT INTO gestion_sede.Sede (
+		nombre,
+		direccion,
+		localidad,
+		provincia
+	)
+	VALUES (
+		@p_nombre,
+		@p_direccion,
+		@p_localidad,
+		@p_provincia
+	)
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_SedeNombre', @Error) > 0 THEN 'Nombre de la sede invalido.'
+			WHEN CHARINDEX('Ck_SedeDireccion', @Error) > 0 THEN 'Direccion de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeLocalidad', @Error) > 0 THEN 'Localidad de la sede invalida.'
+			WHEN CHARINDEX('Ck_SedeProvincia', @Error) > 0 THEN 'Provincia de la sede invalida.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO	
 
@@ -1411,6 +1600,16 @@ CREATE OR ALTER PROCEDURE gestion_sede.BorrarSede
 	@p_id	INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La sede no existe'
+		RETURN
+	END
 	DELETE gestion_sede.Sede 
 	WHERE id = @p_id	
 END
@@ -1419,28 +1618,6 @@ GO
 
 --- CREACION STORE PROCEDURES MEDICO
 
--- BUSCAR MEDICO
-
-CREATE OR ALTER PROCEDURE gestion_sede.ExisteMedico 
-	@p_nombre			VARCHAR(30),
-	@p_apellido			VARCHAR(30),
-	@p_matricula		INT,
-	@r_existe			BIT OUTPUT
-AS
-BEGIN
-	SET @r_existe = 0
-	IF EXISTS(
-		SELECT 1
-		FROM gestion_sede.Medico
-		WHERE nombre			= @p_nombre
-			AND	apellido		= @p_apellido
-			AND matricula		= @p_matricula
-	)
-	BEGIN
-		SET @r_existe = 1
-	END
-END
-GO	
 
 -- ACTUALIZAR MEDICO
 
@@ -1452,6 +1629,16 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarMedico
 	@p_id_especialidad	INT			= NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe el medico'
+		RETURN
+	END
 	DECLARE
 		@nombre				VARCHAR(30),
 		@apellido			VARCHAR(30),
@@ -1465,13 +1652,27 @@ BEGIN
 	FROM gestion_sede.Medico
 	WHERE id = @p_id
 
-	UPDATE	gestion_sede.Medico
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre),
-		apellido		= ISNULL(@p_apellido, @apellido),
-		matricula		= ISNULL(@p_matricula, @matricula),
-		id_especialidad = ISNULL(@p_id_especialidad, @id_especialidad)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE	gestion_sede.Medico
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre),
+			apellido		= ISNULL(@p_apellido, @apellido),
+			matricula		= ISNULL(@p_matricula, @matricula),
+			id_especialidad = ISNULL(@p_id_especialidad, @id_especialidad)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_MedicoNombre', @Error) > 0 THEN 'Nombre del medico invalido.'
+			WHEN CHARINDEX('Ck_MedicoApellido', @Error) > 0 THEN 'Apellido del medico invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1485,38 +1686,46 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarMedico
 	@p_id_especialidad	INT
 AS
 BEGIN
-	DECLARE @existe	BIT
-	EXEC @existe = gestion_sede.ExisteMedico
-		@p_nombre			= @p_nombre,
-		@p_apellido			= @p_apellido,
-		@p_matricula		= @p_matricula,
-		@p_id_especialidad	= @p_id_especialidad
-
-	IF @existe = 1
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE nombre = @p_nombre
+		AND apellido = @p_apellido
+		AND matricula = @p_matricula
+		AND id_especialidad = @p_id_especialidad
+	)
 	BEGIN
-		EXEC gestion_sede.ActualizarMedico
-			@p_id				= @p_id,
-			@p_nombre			= @p_nombre,
-			@p_apellido			= @p_apellido,
-			@p_matricula		= @p_matricula,
-			@p_id_especialidad	= @p_id_especialidad
+		PRINT 'Error: Ya existe el medico'
+		RETURN
 	END
-	ELSE
-	BEGIN
-		INSERT INTO gestion_sede.Medico (
-			nombre,
-			apellido,
-			matricula,
-			id_especialidad
-		)
-		VALUES (
-			@p_nombre,
-			@p_apellido,
-			@p_matricula,
-			@p_id_especialidad
-		)
 
-	END
+	BEGIN TRY
+	INSERT INTO gestion_sede.Medico (
+		nombre,
+		apellido,
+		matricula,
+		id_especialidad
+	)
+	VALUES (
+		@p_nombre,
+		@p_apellido,
+		@p_matricula,
+		@p_id_especialidad
+	)
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_MedicoNombre', @Error) > 0 THEN 'Nombre del medico invalido.'
+			WHEN CHARINDEX('Ck_MedicoApellido', @Error) > 0 THEN 'Apellido del medico invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1525,6 +1734,15 @@ GO
 CREATE OR ALTER PROCEDURE gestion_sede.BorrarMedico
 	@p_id INT
 AS
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe el medico'
+	END
 	DELETE FROM gestion_sede.Medico WHERE id = @p_id;		
 GO
 
@@ -1541,7 +1759,9 @@ CREATE OR ALTER PROCEDURE gestion_sede.InsertarDiasXSede
 	@p_dia					DATE, 
 	@p_hora_inicio			TIME
 AS
-	IF(DATEPART(MINUTE, @p_hora_inicio) IN (0,15,30,45))
+BEGIN
+	set nocount on
+	BEGIN TRY
 		INSERT INTO gestion_sede.DiasXSede(
 			id,
 			id_sede,
@@ -1558,6 +1778,19 @@ AS
 			@p_dia,
 			@p_hora_inicio
 		);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_DiasXSedeHoraInicio', @Error) > 0 THEN 'Hora de inicio invalida. Debe ser en punto o en cuartos (00, 15, 30, 45).'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
+END
 GO	
 
 -- ACTUALIZAR DIASXSEDE
@@ -1571,7 +1804,16 @@ CREATE OR ALTER PROCEDURE gestion_sede.ActualizarDiasXSede
 	@p_hora_inicio		TIME = NULL
 AS
 BEGIN
-
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.DiasXSede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe DiasXSede ingresado'
+		RETURN
+	END
 	DECLARE
 		@id_sede			INT,
 		@id_medico			INT,
@@ -1585,26 +1827,49 @@ BEGIN
 		@hora_inicio	= hora_inicio
 	FROM gestion_sede.DiasXSede
 	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.DiasXSede
+		SET
+			id_sede			= ISNULL(@p_id_sede, @id_sede),
+			id_medico		= ISNULL(@p_id_medico, @id_medico),
+			dia				= ISNULL(@p_dia, @dia),
+			hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
+		WHERE id = @p_id;
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
-    UPDATE gestion_sede.DiasXSede
-    SET
-        id_sede			= ISNULL(@p_id_sede, @id_sede),
-        id_medico		= ISNULL(@p_id_medico, @id_medico),
-        dia				= ISNULL(@p_dia, @dia),
-        hora_inicio		= ISNULL(@p_hora_inicio, @hora_inicio)
-    WHERE id = @p_id;
+		SET @mensaje = CASE
+			WHEN CHARINDEX('CK_DiasXSedeHoraInicio', @Error) > 0 THEN 'Hora de inicio invalida. Debe ser en punto o en cuartos (00, 15, 30, 45).'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+END CATCH
 END
 GO
 
 -- BORRAR DIASXSEDE
 
-CREATE OR ALTER PROCEDURE gestion_sede.BorrarDias
-	@p_sede		INT,
-	@p_medico	INT
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarDiasXSede
+	@p_id INT
 AS
+BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.DiasXSede
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe DiasXSede ingresado'
+		RETURN
+	END
+
 	DELETE gestion_sede.Diasxsede 
-	WHERE id_sede = @p_sede 
-		AND id_medico = @p_medico;		
+	WHERE id = @p_id	
+END
 GO
 
 ---- CREACION STORE PROCEDURES ESPECIALIDAD
@@ -1613,23 +1878,40 @@ GO
 
 CREATE OR ALTER PROCEDURE gestion_sede.InsertarEspecialidad
 	@p_id		INT			= NULL,
-	@p_nombre	VARCHAR(30)
+	@p_nombre	VARCHAR(31)
 AS
 BEGIN
-
-	IF NOT EXISTS(
+	set nocount on
+	IF EXISTS(
 		SELECT 1
 		FROM gestion_sede.Especialidad
 		WHERE nombre = @p_nombre
 	)
 	BEGIN
+		PRINT 'Error: Ya existe la especialidad ingresada'
+		RETURN
+	END
+
+	BEGIN TRY
 		INSERT INTO gestion_sede.Especialidad(
 			nombre
 		) 
 		VALUES (
 			@p_nombre
 		);
-	END
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EspecialidadNombre', @Error) > 0 THEN 'Nombre de la especialidad invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
+	
 
 	
 END
@@ -1637,11 +1919,22 @@ GO
 
 --- ACTUALIZAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_sede.ActualizarEspecialidad
 	@p_id		INT,
 	@p_nombre	VARCHAR(30) = NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la especialidad ingresada'
+		RETURN
+	END
+
 	DECLARE
 		@nombre         VARCHAR(30)
 
@@ -1650,19 +1943,42 @@ BEGIN
 	FROM gestion_sede.Especialidad
 	WHERE id = @p_id
 
-	UPDATE gestion_sede.Especialidad
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_sede.Especialidad
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EspecialidadNombre', @Error) > 0 THEN 'Nombre de la especialidad invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
 --- BORRAR ESPECIALIDAD
 
-CREATE OR ALTER PROCEDURE gestion_turno.BorrarEspecialidad
+CREATE OR ALTER PROCEDURE gestion_sede.BorrarEspecialidad
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la especialidad ingresada'
+		RETURN
+	END
 	DELETE gestion_sede.Especialidad
 	WHERE id = @p_id
 END
@@ -1678,7 +1994,30 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarEstadoTurno
 	@p_nombre	VARCHAR(11)
 AS
 BEGIN
-	INSERT INTO gestion_turno.EstadoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	set nocount on
+	IF EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE nombre = @p_nombre
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno ya existe'
+		RETURN
+	END
+	BEGIN TRY
+		INSERT INTO gestion_turno.EstadoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstadoTurnoNombre', @Error) > 0 THEN 'Nombre del estado de turno invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1689,6 +2028,17 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarEstadoTurno
 	@p_nombre	VARCHAR(11) = NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+
 	DECLARE
 		@nombre         VARCHAR(11)
 
@@ -1697,10 +2047,24 @@ BEGIN
 	FROM gestion_turno.EstadoTurno
 	WHERE id = @p_id
 
-	UPDATE gestion_turno.EstadoTurno
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+
+		UPDATE gestion_turno.EstadoTurno
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_EstadoTurnoNombre', @Error) > 0 THEN 'Nombre del estado de turno invalido.'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1709,6 +2073,16 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarEstadoTurno
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM  gestion_turno.EstadoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
 	DELETE gestion_turno.EstadoTurno
 	WHERE id = @p_id
 END
@@ -1723,6 +2097,17 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarTipoTurno
     @p_nombre       VARCHAR(11) = NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+	
 	DECLARE
 		@nombre         VARCHAR(11)
 
@@ -1731,11 +2116,23 @@ BEGIN
 	FROM gestion_turno.TipoTurno
 	WHERE id = @p_id
 
-	UPDATE gestion_turno.TipoTurno
-	SET	
-		nombre			= ISNULL(@p_nombre, @nombre)
-	WHERE id = @p_id
+	BEGIN TRY
+		UPDATE gestion_turno.TipoTurno
+		SET	
+			nombre			= ISNULL(@p_nombre, @nombre)
+		WHERE id = @p_id
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
 
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_TipoTurno', @Error) > 0 THEN 'Nombre del tipo de turno invalido. Debe ser "Presencial" o "Virtual".'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END;
 GO
 
@@ -1746,7 +2143,30 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarTipoTurno
 	@p_nombre	VARCHAR(20)
 AS
 BEGIN
-	INSERT INTO gestion_turno.TipoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	set nocount on
+	IF EXISTS(
+	SELECT 1
+	FROM gestion_turno.TipoTurno
+	WHERE nombre = @p_nombre
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno ya existe'
+		RETURN
+	END
+	BEGIN TRY
+		INSERT INTO gestion_turno.TipoTurno(id, nombre) VALUES (@p_id, @p_nombre);
+	END TRY
+	BEGIN CATCH
+		DECLARE @Error NVARCHAR(1000) = ERROR_MESSAGE();
+		DECLARE @mensaje NVARCHAR(1000);
+
+		SET @mensaje = CASE
+			WHEN CHARINDEX('Ck_TipoTurno', @Error) > 0 THEN 'Nombre del tipo de turno invalido. Debe ser "Presencial" o "Virtual".'
+			ELSE 'Error no identificado'
+		END
+
+		PRINT 'Error en el campo: ' + @mensaje;
+	END CATCH
 END
 GO
 
@@ -1756,6 +2176,17 @@ CREATE OR ALTER PROCEDURE gestion_turno.EliminarTipoTurno
 	@p_id		INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+	SELECT 1
+	FROM gestion_turno.TipoTurno
+	WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DELETE gestion_turno.TipoTurno
 	WHERE id = @p_id
 
@@ -1776,6 +2207,45 @@ CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
 	@p_borrado_logico			BIT		= NULL
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La reserva no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DECLARE
 		@fecha					DATE,
 		@hora					TIME,
@@ -1814,12 +2284,43 @@ CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
 	@p_fecha					DATE,
 	@p_hora						TIME,
 	@p_id_paciente				INT,
-	@p_id_medico				INT	= NULL,
-	@p_id_especialidad			INT	= NULL,
-	@p_id_sede_atencion			INT	= NULL,
+	@p_id_medico				INT,
+	@p_id_especialidad			INT,
+	@p_id_sede_atencion			INT,
+	@p_id_estado_turno			INT,
 	@p_id_tipo_turno			INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		RETURN
+	END
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		RETURN
+	END
+
 	DECLARE @disponiblidad	INT
 	DECLARE @id_estado		INT
 	DECLARE @existe			BIT
@@ -1880,15 +2381,297 @@ CREATE OR ALTER PROCEDURE gestion_turno.BorrarReservaTurno
 	@p_id	INT
 AS
 BEGIN
+	set nocount on
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: No existe la reserva ingresada'
+		RETURN
+	END
 	UPDATE gestion_turno.ReservaTurno
 	SET borrado_logico = 1
 	WHERE id = @p_id
 END
 GO
 
+-- ==================== CREACION DE STORE PROCEDURES RESERVA TURNO ====================
+
+-- EXISTE MEDICO CON ESPECIALIDAD/SEDE
+
+CREATE OR ALTER PROCEDURE gestion_turno.ExisteMedicoEspecialidadSede 
+	@p_id_medico			INT,
+	@p_id_especialidad		INT,
+	@p_id_sede_atencion		INT,
+	@existen				BIT OUTPUT  
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id_medico
+	)
+	BEGIN
+		PRINT 'Error: El Medico ingresado no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id_especialidad
+	)
+	BEGIN
+		PRINT 'Error: La Especialidad del Medico no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id_sede_atencion
+	)
+	BEGIN
+		PRINT 'Error: La Sede de atencion no existe'
+		SET @existen = 0
+	END
+	ELSE
+		SET @existen = 1
+END
+go
+
+-- EXISTE RESERVA TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.ExisteEstadoTipo
+	@p_id_estado_turno		INT,
+	@p_id_tipo_turno		INT,
+	@existen				BIT OUTPUT
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		SET @existen = 0
+	END
+	ELSE
+		SET @existen = 1
+END
+go
+
+-- ACTUALIZAR RESERVA TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
+    @p_id						INT,
+    @p_fecha					DATE	= NULL,
+	@p_hora						TIME	= NULL,
+	@p_id_paciente				INT		= NULL,
+	@p_id_estado_turno			INT		= NULL,
+	@p_id_tipo_turno			INT		= NULL,
+	@p_borrado_logico			BIT		= NULL
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La reserva no existe'
+		RETURN
+	END
+	-- Es IMPORTANTE fijarse que alguno tenga valor para que no diga que NO existe el estado o tipo NULL
+	IF @p_id_estado_turno <> NULL OR @p_id_tipo_turno <> NULL
+	BEGIN
+		DECLARE @estadoTipo BIT
+		EXEC gestion_turno.ExisteEstadoTipo @p_id_estado_turno, @p_id_tipo_turno, @estadoTipo OUTPUT
+		IF @estadoTipo = 0
+			RETURN
+	END
+	
+	DECLARE
+		@fecha					DATE,
+		@hora					TIME,
+		@id_paciente			INT,
+		@id_estado_turno		INT,
+		@id_tipo_turno			INT,
+		@borrado_logico			BIT
+
+	SELECT 
+		@fecha					= fecha,
+		@hora					= hora,
+		@id_paciente			= id_paciente,
+		@id_estado_turno		= id_estado_turno,
+		@id_tipo_turno			= id_tipo_turno,
+		@borrado_logico			= borrado_logico
+	FROM gestion_turno.ReservaTurno
+	WHERE id = @p_id
+
+	UPDATE gestion_turno.ReservaTurno
+	SET	
+		fecha					= ISNULL(@p_fecha, @fecha),
+		hora					= ISNULL(@p_hora, @hora),
+		id_paciente				= ISNULL(@p_id_paciente, @id_paciente),
+		id_estado_turno			= ISNULL(@p_id_estado_turno, @id_estado_turno),
+		id_tipo_turno			= ISNULL(@p_id_tipo_turno, @id_tipo_turno),
+		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico)
+	WHERE id = @p_id
+END
+go
+
+-- INSERTAR RESERVA DE TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
+	@p_id						INT,
+	@p_fecha					DATE,
+	@p_hora						TIME,
+	@p_id_paciente				INT,
+	@p_id_medico				INT,
+	@p_id_especialidad			INT,
+	@p_id_sede_atencion			INT,
+	@p_id_estado_turno			INT,
+	@p_id_tipo_turno			INT
+AS
+BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	DECLARE @estadoTipo BIT, @medicoEspSede BIT
+
+	EXEC gestion_turno.ExisteEstadoTipo @p_id_estado_turno, @p_id_tipo_turno, @estadoTipo OUTPUT
+	EXEC gestion_turno.ExisteMedicoEspecialidadSede @p_id_medico, @p_id_especialidad, @p_id_sede_atencion, @medicoEspSede OUTPUT
+
+	IF @estadoTipo = 1 AND @medicoEspSede = 1 -- Los datos son correctos 
+	BEGIN
+		DECLARE @disponiblidad	INT, @id_estado	INT, @existe BIT
+
+		IF EXISTS(
+			SELECT 1
+			FROM gestion_turno.ReservaTurno
+			WHERE id = @p_id 
+		)
+		BEGIN
+			EXEC gestion_turno.ActualizarReservaTurno 
+					@p_id				= @p_id,
+					@p_borrado_logico	= 0
+			PRINT 'El ID de la reserva ya existe. Se volvio a habilitar'
+		END
+	--	Si existe una Reserva para el mismo Paciente, fecha y hora
+		ELSE IF EXISTS ( 
+			SELECT 1
+			FROM gestion_turno.ReservaTurno
+			WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora
+			AND id_estado_turno = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+		)
+			PRINT 'Error: El paciente tiene otro turno a esa fecha y hora'
+		ELSE
+		BEGIN
+		-- Si hay una reserva Pendiente (aun no Disponible) para ese Paciente, fecha y hora (NO es posible que haya más de 1)
+		-- la descarto antes de crear la nueva reserva
+			IF EXISTS (
+				SELECT 1
+				FROM gestion_turno.ReservaTurno
+				WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora
+				AND id_estado_turno = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Pendiente')
+			)
+			BEGIN
+				DECLARE @turnoID INT -- NO es posible que haya más de 1, por eso asigno de forma directa
+				SET @turnoID = (SELECT id FROM gestion_turno.ReservaTurno
+								WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora)
+				
+				EXEC gestion_turno.ActualizarReservaTurno
+					@p_id				= @turnoID,
+					@p_borrado_logico	= 1
+				PRINT 'Había una reserva Pendiente para ese Paciente, fecha y hora. Se eliminó'
+			END	
+		/*	Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
+			especialidad y la sede.
+		*/
+			EXEC gestion_turno.ConsultarDisponibilidad
+				@p_id_medico		= @p_id_medico,
+				@p_id_especialidad	= @p_id_especialidad,
+				@p_id_sede_atencion = @p_id_sede_atencion,
+				@r_disponiblidad	= @disponiblidad	OUTPUT
+
+			IF @disponiblidad = 1
+				SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+			ELSE
+				SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Pendiente')
+
+			INSERT INTO gestion_turno.ReservaTurno(
+				id,
+				fecha,
+				hora,
+				id_paciente,
+				id_estado_turno,
+				id_tipo_turno
+			)		
+			VALUES (
+				@p_id,
+				@p_fecha,
+				@p_hora,
+				@p_id_paciente,
+				@id_estado,
+				@p_id_tipo_turno
+			)
+		END
+	END
+END
+go
+
+-- MODIFICACION
+
+CREATE OR ALTER PROCEDURE gestion_turno.ModificarEstadoReserva
+	@p_id			INT,
+	@p_id_estado	INT
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+		PRINT 'Error: La reserva no existe'
+
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado
+	)
+		PRINT 'Error: El estado de turno no existe'
+	ELSE
+	BEGIN
+		UPDATE gestion_turno.ReservaTurno
+		SET id_estado_turno = @p_id_estado WHERE id = @p_id
+		PRINT 'Estado de Reserva actualizado'
+	END
+END
+go
+
+
+USE Com5600G07
+GO
 
 --- FUNCIONES Y PROCEDIMIENTOS PARA LOS ITEMS DEL ENUNCIADO
-
 
 /*
 Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
@@ -1898,7 +2681,7 @@ el importe a facturarle al paciente.
 */
 
 CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
-	@p_id_estudio		VARCHAR(30),
+	@p_id_estudio		INT,
 	@p_dni_paciente		INT,
 	@p_plan_prestador	VARCHAR(30),	
 	@p_ruta				VARCHAR(max),	
@@ -1906,12 +2689,13 @@ CREATE OR ALTER PROCEDURE gestion_paciente.AutorizarEstudio
 AS
 BEGIN
 	set nocount on
+
 	-- busco id de paciente/historia clinica con el dni recibido
 	DECLARE @id_historia_clinica	INT				= (SELECT id FROM gestion_paciente.Paciente WHERE num_doc = @p_dni_paciente)
 	-- busco si esta autorizado el estudio
 	DECLARE @autorizado				BIT				= (SELECT autorizado FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica) 
 	-- busco nombre del estudio relacionado al codigo recibido
-	DECLARE @nombre_estudio			VARCHAR(100)	= (SELECT nombre_estudio FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica)
+	DECLARE @nombre_estudio			VARCHAR(100)	= (SELECT nombre	 FROM gestion_paciente.Estudio WHERE id = @p_id_estudio AND id_paciente = @id_historia_clinica)
 
 	-- para el nombre del estudio y el plan recibido calculo importe y verifico si necesita autorizacion
 	DECLARE @importe				DECIMAL(10,2)
@@ -1939,18 +2723,19 @@ BEGIN
 	FROM OPENJSON(@json) AS j
 	WHERE JSON_VALUE(value, '$.Estudio') = @nombre_estudio 
 		AND JSON_VALUE(value, '$.Plan') = @p_plan_prestador
-	
+	print (@auxiliar)
 	IF	@auxiliar = 0
 	BEGIN
 		SET @p_respuesta = 'No se encontro informacion para el estudio y plan especificados.';
 		RETURN;
 	END
+	ELSE IF @auxiliar = 1
 	SET @p_respuesta = 'El importe a facturar al paciente es: ' + CAST(ISNULL(@importe, 0) as varchar(15)) + '$'
 	-- si necesita autorizacion y no la tiene, entonces rechazado.
-	IF @req_autorizacion = 'true' AND @autorizado = 0
-	BEGIN
+	ELSE IF @req_autorizacion = 'true' AND @autorizado = 0
 		SET @p_respuesta = 'Se requiere autorizacion y el estudio no esta autorizado.'
-	END
+	ELSE
+		SET @p_respuesta = 'Error desconocido'
 
 END;
 GO
@@ -1990,10 +2775,9 @@ BEGIN
 		JOIN gestion_paciente.Prestador Pre	ON Pre.id_cobertura = C.id
 
 	WHERE Pre.nombre = @p_obra_social
-		AND	DXS.dia >= @p_fecha_inicial
-		AND	DXS.dia <= @p_fecha_final
+		AND	DXS.dia BETWEEN @p_fecha_inicial AND @p_fecha_final
 		AND RT.id_estado_turno = @id_estado
-	FOR XML RAW ('Turno'), ROOT('TurnosAtendidos');
+	FOR XML AUTO, ROOT('TurnosAtendidos');
 END
 GO
 
@@ -2021,16 +2805,20 @@ END
 GO
 
 
+USE Com5600G07
+GO
+
 --- CREACION DE PROCEDIMIENTOS DE IMPORTACION
 
--- IMPORTAR PACIENTE
+-- IMPORTAR PACIENTE Y DOMICILIO
 
 CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPacientes
 	@p_ruta				VARCHAR(max)
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+
+	CREATE TABLE #CsvPaciente (
 		nombre			VARCHAR(30),
 		apellido		VARCHAR(30),
 		fecha_nac		VARCHAR(10),
@@ -2045,7 +2833,12 @@ BEGIN
 		localidad		VARCHAR(50),
 		provincia		VARCHAR(50)
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	CREATE TABLE #CsvId (
+		id_paciente		INT, 
+		nro				INT IDENTITY(1,1)
+	)
+	BEGIN TRY
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvPaciente 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -2053,92 +2846,84 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
+	END TRY
+	BEGIN CATCH
+		IF ERROR_NUMBER() = 4861
+			PRINT 'La ruta del archivo ingresado no existe'
+	END CATCH
+	ALTER TABLE #CsvPaciente ADD nro INT IDENTITY(1,1)
+
+	--	IMPORTAR PACIENTE
+
+	INSERT INTO gestion_paciente.Paciente(
+					nombre, 
+					apellido, 
+					apellido_materno, 
+					fecha_nac, 
+					tipo_doc, 
+					num_doc, 
+					sexo, 
+					genero, 
+					nacionalidad, 
+					tel_fijo, 
+					mail, 
+					fecha_actualizacion, 
+					usr_actualizacion
+				)
+	OUTPUT INSERTED.ID INTO #CsvId
+	SELECT C.nombre, 
+		C.apellido, 
+		gestion_paciente.LimpiarApellidoMaterno(c.apellido), 
+		TRY_CONVERT(DATE, c.fecha_nac, 103), 
+		C.tipo_doc, 
+		C.nro_doc, 
+		C.sexo, 
+		C.genero, 
+		C.nacionalidad, 
+		C.telefono, 
+		C.mail, 
+		GETDATE(), 
+		ORIGINAL_LOGIN()
+	FROM #CsvPaciente C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_paciente.Paciente P
+		WHERE nombre			= c.nombre
+			AND	apellido		= c.apellido
+			AND tipo_doc		= c.tipo_doc
+			AND num_doc			= c.nro_doc
+			AND nacionalidad	= c.nacionalidad
+	)
+
+	-- IMPORTAR DOMICILIO
 	
-	-- cursor es como un puntero a un archivo, se tiene que abrir, cerrar y desalocar por tema de liberacion de recursos
-	-- con esto podemos iterar sobre cada fila y ejecutar alguna accion, osea ejecutamos el sp de insertar
-	-- @@fetch_status devuelve si la ultima operacion fue exitosa, si insertarPaciente no inserto, entonces fetch_status se vuelve 1 y termina el ciclo
-	-- si inserto, entonces se mantiene en 0
-	DECLARE 
-		@nombre				VARCHAR(30), 
-		@apellido			VARCHAR(30), 
-		@fecha_nac			VARCHAR(10),
-		@fecha_nac_date		DATE,
-		@tipo_doc			CHAR(5),
-		@nro_doc			INT, 
-		@sexo				VARCHAR(11), 
-		@genero				VARCHAR(9),
-		@telefono			VARCHAR(15),
-		@nacionalidad		VARCHAR(30), 
-		@mail				VARCHAR(30),
-		@calle_y_nro		VARCHAR(50),
-        @localidad			VARCHAR(50),
-        @provincia			VARCHAR(50),
-        @calle				VARCHAR(30),
-        @numero				VARCHAR(30),
-		@id_paciente		INT,
-		@apellido_materno	VARCHAR(30)
-
-	DECLARE cursor_pacientes CURSOR FOR 
-    SELECT nombre, apellido, fecha_nac, tipo_doc, nro_doc, sexo, genero, telefono, nacionalidad, mail, calle_y_nro, localidad, provincia 
-    FROM #csv_TT;
-
-	OPEN cursor_pacientes
-
-	FETCH NEXT FROM cursor_pacientes INTO @nombre, @apellido, @fecha_nac, @tipo_doc, @nro_doc, @sexo, @genero, @telefono, @nacionalidad, @mail, @calle_y_nro, @localidad, @provincia;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		SET @Fecha_nac_date = TRY_CONVERT(DATE, @Fecha_nac, 103);	-- 103 es el formato dd/mm/aaaa
-		
-        SELECT @calle = calle, @numero = numero FROM gestion_paciente.ParsearDomicilio (@calle_y_nro);
-		SET @apellido_materno = gestion_paciente.LimpiarApellidoMaterno (@apellido)
-
-		EXEC gestion_paciente.InsertarPaciente
-			@p_nombre			= @nombre,
-			@p_apellido			= @apellido,
-			@p_apellido_materno = @apellido_materno,
-			@p_fecha_nac		= @fecha_nac_date,
-			@p_tipo_doc			= @tipo_doc,
-			@p_num_doc			= @nro_doc,
-			@p_sexo				= @sexo,
-			@p_genero			= @genero,
-			@p_tel_fijo			= @telefono,
-			@p_nacionalidad		= @nacionalidad,
-			@p_mail				= @mail,
-			@p_id_identity		= @id_paciente	OUTPUT
-	
-		EXEC gestion_paciente.InsertarDomicilio
-			@p_id_paciente	= @id_paciente,
-			@p_calle		= @calle,
-			@p_numero		= @numero,
-			@p_pais			= @nacionalidad,
-			@p_localidad	= @localidad,
-			@p_provincia	= @provincia
-	
-		FETCH NEXT FROM cursor_pacientes INTO @nombre, @apellido, @fecha_nac, @tipo_doc, @nro_doc, @sexo, @genero, @telefono, @nacionalidad, @mail, @calle_y_nro, @localidad, @provincia;
-	END
-	CLOSE cursor_pacientes
-	DEALLOCATE cursor_pacientes	
-	
+	INSERT INTO gestion_paciente.Domicilio(
+					calle, 
+					numero, 
+					provincia, 
+					localidad, 
+					id_paciente
+				)
+	SELECT P.calle, 
+		P.numero, 
+		C.provincia, 
+		C.localidad, 
+		T.id_paciente
+	FROM #CsvPaciente C
+	CROSS APPLY gestion_paciente.ParsearDomicilio(c.calle_y_nro) P
+	JOIN #CsvId T on T.nro = C.nro
+	WHERE NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Domicilio D
+		WHERE D.calle = P.calle
+			AND	D.numero		= P.numero
+			AND D.localidad		= C.localidad
+			AND D.id_paciente	= T.id_paciente
+	)
 END
 GO
 
--- para testear:
-/*
-
-delete from gestion_paciente.Domicilio
-delete from gestion_paciente.Paciente
-DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
-
-EXEC gestion_paciente.ImportarPacientes 
-		@p_ruta = @p_ruta
-GO
-
-SELECT * from gestion_paciente.Paciente
-
-
-*/
 
 -- IMPORTAR PRESTADOR
 
@@ -2147,12 +2932,12 @@ CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPrestadores
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvPrestador (
 		nombre			VARCHAR(30),
 		[plan]			VARCHAR(30),
-		basura			CHAR(1)
+		basura			VARCHAR(10)
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvPrestador 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -2160,43 +2945,24 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@nombre VARCHAR(30),
-		@plan	VARCHAR(30)
-
-	DECLARE cursor_prestadores CURSOR FOR 
-    SELECT nombre, [plan]
-    FROM #csv_TT;
-
-	OPEN cursor_prestadores
-
-	FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-		EXEC gestion_paciente.InsertarPrestador
-			@p_nombre		= @nombre,
-			@p_plan			= @plan
-			
-	
-		FETCH NEXT FROM cursor_prestadores INTO @nombre, @plan;
-	END
-	CLOSE cursor_prestadores
-	DEALLOCATE cursor_prestadores	
-	
+	INSERT INTO gestion_paciente.Prestador(
+					nombre, 
+					[plan]
+				)
+	SELECT C.nombre, 
+		C.[plan]
+	FROM #CsvPrestador C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_paciente.Prestador
+		WHERE nombre			= C.nombre
+			AND	[plan]			= C.[plan]
+	)
 END
 GO
--- para testear:
-/*
-DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Prestador.csv'; 
 
-EXEC gestion_paciente.ImportarPrestadores 
-		@p_ruta = @p_ruta
-GO
-*/
 
 --IMPORTAR SEDE
 
@@ -2205,13 +2971,13 @@ CREATE OR ALTER PROCEDURE gestion_sede.ImportarSede
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvSede (
 	    nombre		VARCHAR(30),
 	    direccion	VARCHAR(30),
 		localidad	VARCHAR(30),
 		provincia	VARCHAR(30)
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvSede 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -2219,47 +2985,32 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@nombre		VARCHAR(30),
-		@direccion	VARCHAR(30),
-		@localidad	VARCHAR(30),
-		@provincia	VARCHAR(30)
 
-	DECLARE cursor_sedes CURSOR FOR 
-    SELECT nombre, direccion, localidad, provincia
-    FROM #csv_TT;
 
-	OPEN cursor_sedes
-
-	FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-		EXEC gestion_sede.InsertarSede
-			@p_nombre		= @nombre,
-			@p_direccion	= @direccion,
-			@p_localidad	= @localidad,
-			@p_provincia	= @provincia
-
-			
-		FETCH NEXT FROM cursor_sedes INTO @nombre, @direccion, @localidad, @provincia;
-	END
-	CLOSE cursor_sedes
-	DEALLOCATE cursor_sedes	
+	INSERT INTO gestion_sede.Sede(
+					nombre, 
+					direccion,
+					localidad,
+					provincia
+				)
+	SELECT C.nombre, 
+		C.direccion,
+		C.localidad,
+		C.provincia
+	FROM #CsvSede C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Sede
+		WHERE nombre			= C.nombre
+			AND	direccion			= C.direccion
+			AND	localidad			= C.localidad
+			AND provincia			= C.provincia
+	)
 	
 END
 GO
-
-/*
--- para testear
-
-EXEC gestion_paciente.ImportarSede
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
-	
-*/
 
 
 --IMPORTAR MEDICO
@@ -2269,14 +3020,14 @@ CREATE OR ALTER PROCEDURE gestion_sede.ImportarMedico
 AS
 BEGIN
 	set nocount on
-	CREATE TABLE #csv_TT (
+	CREATE TABLE #CsvMedico (
 	    apellido		VARCHAR(30),
 		nombre			VARCHAR(30),
-		especialidad	VARCHAR(20),
+		especialidad	VARCHAR(30),
 		matricula		INT
 
 	)
-	DECLARE @consulta_sql VARCHAR(max) = 'BULK INSERT #csv_TT 
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvMedico 
 											FROM ''' + @p_ruta + ''' 
 											WITH (
 												FIELDTERMINATOR = '';'',
@@ -2284,200 +3035,38 @@ BEGIN
 												CODEPAGE = ''65001'',
 												FIRSTROW = 2
 											);'
-	EXEC (@consulta_sql)
+	EXEC sp_executesql @consulta_sql
 
-	DECLARE 
-		@apellido			VARCHAR(30),
-		@nombre				VARCHAR(30),
-		@especialidad		VARCHAR(30),
-		@matricula			INT,
-		@id_especialidad	INT
+	INSERT INTO gestion_sede.Especialidad(
+					nombre
+				)
+	SELECT DISTINCT C.especialidad
+	FROM #CsvMedico C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Especialidad
+		WHERE nombre = C.especialidad
+	)
 
-
-	DECLARE cursor_medicos CURSOR FOR 
-    SELECT nombre, apellido, especialidad, matricula
-    FROM #csv_TT;
-
-	OPEN cursor_medicos
-
-	FETCH NEXT FROM cursor_medicos INTO @nombre, @apellido, @especialidad, @matricula
-
-	WHILE @@FETCH_STATUS = 0	
-	BEGIN
-		
-
-		EXEC gestion_sede.InsertarEspecialidad
-			@p_nombre = @especialidad
-
-		SELECT @id_especialidad = id FROM gestion_sede.Especialidad WHERE nombre = @especialidad
-
-		SET @apellido = gestion_sede.LimpiarApellidoMedico(@apellido)
-
-		EXEC gestion_sede.InsertarMedico
-			@p_nombre		= @nombre,
-			@p_apellido		= @apellido,
-			@p_matricula	= @matricula,
-			@p_id_especialidad	= @id_especialidad
-
-		FETCH NEXT FROM cursor_medicos INTO @nombre, @apellido, @especialidad, @matricula;
-	END
-	CLOSE cursor_medicos
-	DEALLOCATE cursor_medicos	
+	INSERT INTO gestion_sede.Medico(
+					nombre, 
+					apellido,
+					id_especialidad,
+					matricula
+				)
+				
+	SELECT C.nombre,
+		gestion_sede.LimpiarApellidoMedico(C.apellido), 
+		gestion_sede.BuscarIdEspecialidad(C.especialidad),
+		C.matricula
+	FROM #CsvMedico C
+	WHERE NOT EXISTS(
+		SELECT 1 
+		FROM gestion_sede.Medico
+		WHERE nombre			= C.nombre
+			AND	apellido			= C.apellido
+			AND	matricula			= C.matricula
+	)
 	
 END
-GO
-
-/*
--- para testear
-
-EXEC gestion_sede.ImportarMedico
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Medicos.csv'
-
-	select * from gestion_sede.Especialidad
-	select * from gestion_sede.Medico
-
-	delete from gestion_sede.Especialidad
-	delete from gestion_sede.Medico
-
-	
-*/
-
-
---- CREACION LOGINS
-EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos
-
--- ADMINISTRADOR
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.syslogins
-	WHERE name = 'db_administrador'
-)
-BEGIN
-	CREATE LOGIN db_administrador WITH PASSWORD = 'pepe123'
-END
-
--- DESARROLLADOR
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.syslogins
-	WHERE name = 'db_desarrollador'
-)
-BEGIN
-	CREATE LOGIN db_desarrollador WITH PASSWORD = 'pepe123'
-END
-
--- OPERADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.syslogins
-	WHERE name = 'clinica_operador'
-)
-BEGIN
-	CREATE LOGIN clinica_operador WITH PASSWORD = 'pepe123'
-END
-
--- ADMINISTRADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.syslogins
-	WHERE name = 'clinica_admin'
-)
-BEGIN
-	CREATE LOGIN clinica_admin WITH PASSWORD = 'pepe123'
-END
-
--- IMPORTADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.syslogins
-	WHERE name = 'clinica_importador'
-)
-BEGIN
-	CREATE LOGIN clinica_importador WITH PASSWORD = 'pepe123'
-END
-
-REVERT	-- para quitar el seteo de usuario sa
-GO
-
---- CREACION USUARIOS
-
-EXECUTE AS LOGIN = 'sa'	-- ya que tiene todo el control para asignar permisos
-
-
--- USUARIO ADMINISTRADOR
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.sysusers
-	WHERE name = 'db_administrador'
-)
-BEGIN
-	CREATE USER db_administrador FOR LOGIN db_administrador
-
-	GRANT ALL TO db_administrador
-END
-GO
-
--- USUARIO DESARROLLADOR
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.sysusers
-	WHERE name = 'db_desarrollador'
-)
-BEGIN
-	CREATE USER db_desarrollador FOR LOGIN db_desarrollador
-
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_paciente	TO db_desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_sede		TO db_desarrollador
-	GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::gestion_turno		TO db_desarrollador
-END
-GO
-
--- USUARIO OPERADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.sysusers
-	WHERE name = 'clinica_operador'
-)
-BEGIN
-	CREATE USER clinica_operador FOR LOGIN clinica_operador
-
-	GRANT EXECUTE ON OBJECT::gestion_paciente.InsertarPaciente		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.ActualizarPaciente	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.BorrarPaciente		TO clinica_operador
-
-	GRANT EXECUTE ON OBJECT::gestion_turno.InsertarReservaTurno		TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_turno.ActualizarReservaTurno	TO clinica_operador
-	GRANT EXECUTE ON OBJECT::gestion_turno.BorrarReservaTurno		TO clinica_operador
-END
-GO
-
--- USUARIO ADMINISTRADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.sysusers
-	WHERE name = 'clinica_admin'
-)
-BEGIN
-	CREATE USER clinica_admin FOR LOGIN clinica_admin
-
-	GRANT EXECUTE ON SCHEMA::gestion_paciente	TO clinica_admin
-	GRANT EXECUTE ON SCHEMA::gestion_sede		TO clinica_admin
-	GRANT EXECUTE ON SCHEMA::gestion_turno		TO clinica_admin
-END
-GO
-
--- USUARIO IMPORTADOR DE LA CLINICA
-IF NOT EXISTS (
-	SELECT 1
-	FROM sys.sysusers
-	WHERE name = 'clinica_importador'
-)
-BEGIN
-	CREATE USER clinica_importador FOR LOGIN clinica_importador
-
-	GRANT EXECUTE ON OBJECT::gestion_paciente.ImportarPacientes			TO clinica_importador
-	GRANT EXECUTE ON OBJECT::gestion_paciente.ImportarPrestadores		TO clinica_importador
-END
-GO
-REVERT	-- para quitar el seteo de usuario sa
 GO
