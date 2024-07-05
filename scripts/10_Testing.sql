@@ -14,9 +14,127 @@ USE Com5600G07
 GO
 
 
+
+/*
+Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "casos_de_prueba"
+*/
+
+-- ====================== Importacion validos ======================
+
+EXEC gestion_paciente.ImportarPacientes
+	@p_ruta	= '../casos_de_prueba/Pacientes.csv'
+SELECT * from gestion_paciente.Paciente
+SELECT * from gestion_paciente.Domicilio
+DELETE from gestion_paciente.Domicilio
+DELETE from gestion_paciente.Paciente
+
+EXEC  gestion_paciente.ImportarPrestadores
+	@p_ruta = '../casos_de_prueba/Prestador.csv'
+SELECT * from gestion_paciente.Prestador
+DELETE from gestion_paciente.Prestador
+
+EXEC gestion_sede.ImportarSede
+	@p_ruta = '../casos_de_prueba/Sedes.csv'
+SELECT * from gestion_sede.Sede
+DELETE from gestion_sede.Sede
+
+EXEC gestion_sede.ImportarMedico
+	@p_ruta = '../casos_de_prueba/Medicos.csv'
+SELECT * from gestion_sede.Especialidad
+SELECT * from gestion_sede.Medico
+DELETE from gestion_sede.Especialidad
+DELETE from gestion_sede.Medico
+
+-- ====================== Importacion con errores ======================
+
+EXEC gestion_paciente.ImportarPacientes
+	@p_ruta = '../casos_de_prueba/PacientesErrores.csv'
+
+EXEC gestion_paciente.ImportarPrestadores
+	@p_ruta = '../casos_de_prueba/PrestadorErrores.csv'
+
+EXEC gestion_sede.ImportarSede
+	@p_ruta = '../casos_de_prueba/SedesErrores.csv'
+
+EXEC gestion_sede.ImportarMedico
+	@p_ruta = '../casos_de_prueba/MedicosErrores.csv'
+
+/*
+	EXPORTACION ARCHIVO XML
+	ejecutar la insercion de datos hasta el comentario ========= V1 =========
+	para limpiar los datos, ejecutar los delete del comentario -- ========= V2 =========
+*/
+-- Paciente
+INSERT INTO gestion_paciente.Paciente (nombre, apellido, num_doc, fecha_nac, tipo_doc, sexo, genero, nacionalidad, mail, tel_fijo, tel_alt, tel_laboral, fecha_registro, fecha_actualizacion, usr_actualizacion, borrado_logico)
+VALUES ('Juan', 'Perez', 12345678, '1990-01-01', 'DNI', 'Masculino', 'Hombre', 'Argentina', 'juan.perez@example.com', '(011) 1234-5678', '(011) 8765-4321', '(011) 5555-5555', '2024-06-01', '2024-06-01', 'admin', 0);
+GO
+DECLARE @id_paciente int
+SET @id_paciente= (SELECT SCOPE_IDENTITY())
+
+-- Cobertura
+INSERT INTO gestion_paciente.Cobertura (id, id_paciente, imagen_credencial, nro_socio, fecha_registro)
+VALUES (1, @id_paciente, 'credencial.jpg', 123456, '2024-06-01');
+
+-- Prestador
+INSERT INTO gestion_paciente.Prestador (id_cobertura, nombre, [plan])
+VALUES (1, 'OSDE', 'Plan 210');
+
+-- EstadoTurno
+INSERT INTO gestion_turno.EstadoTurno (id, nombre)
+VALUES (1, 'Atendido');
+-- TipoTurno
+INSERT INTO gestion_turno.TipoTurno(id, nombre)
+VALUES (1, 'Presencial')
+
+-- ReservaTurno
+INSERT INTO gestion_turno.ReservaTurno (id, fecha, hora, id_paciente, id_estado_turno, id_tipo_turno, borrado_logico)
+VALUES (1, '2024-06-15', '10:00:00', @id_paciente, 1, 1, 0);
+
+-- Medico y especialidad
+INSERT INTO gestion_sede.Especialidad (nombre)
+VALUES ('Cardiología');
+DECLARE @id_especialidad int
+SET @id_especialidad= (SELECT SCOPE_IDENTITY())
+
+INSERT INTO gestion_sede.Medico (nombre, apellido, matricula, id_especialidad)
+VALUES ('Carlos', 'Gomez', 12345, @id_especialidad);
+DECLARE @id_medico int
+SET @id_medico= (SELECT SCOPE_IDENTITY())
+-- Sede
+INSERT INTO gestion_sede.Sede(nombre)
+VALUES ('Cruz roja')
+DECLARE @id_sede int
+SET @id_sede= (SELECT SCOPE_IDENTITY())
+-- DiasXSede
+INSERT INTO gestion_sede.DiasXSede (id, id_sede, id_medico, id_reserva_turno, dia, hora_inicio)
+VALUES (1, @id_sede, @id_medico, 1, '2024-06-15', '10:00:00');
+GO
+
+-- ========= V1 =========
+
+-- CASO DE TURNO DENTRO DEL RANGO DE FECHAS
+EXEC gestion_turno.ExportarTurnos 'OSDE', '2024-06-01', '2024-06-30';
+-- CASO DE TURNO FUERA DEL RANGO DE FECHAS
+EXEC gestion_turno.ExportarTurnos 'OSDE', '2024-07-01', '2024-07-30';
+
+-- ========= V2 =========
+DELETE FROM gestion_sede.DiasXSede;
+DELETE FROM gestion_sede.Medico;
+DELETE FROM gestion_sede.Especialidad;
+DELETE FROM gestion_turno.ReservaTurno;
+DELETE FROM gestion_turno.EstadoTurno;
+DELETE FROM gestion_turno.TipoTurno
+DELETE FROM gestion_paciente.Prestador;
+DELETE FROM gestion_paciente.Cobertura;
+DELETE FROM gestion_paciente.Paciente;
+-- ========= V2 =========
+
 /*
 	Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
 	especialidad y la sede.
+	Para testear este caso de prueba, es necesario ejecutar hasta el comentario ===== V1 =====
+	y despues ejecutar el borrado de los datos de prueba, el cual esta en el comentario ===== V2 =====
+
 */
 
 INSERT INTO gestion_paciente.Paciente(nombre, apellido, fecha_nac, tipo_doc, num_doc, sexo, genero, nacionalidad, mail)
@@ -50,7 +168,7 @@ INSERT INTO gestion_turno.EstadoTurno(id, nombre)
 VALUES (101,'Pendiente');
 
 INSERT INTO gestion_turno.TipoTurno(id, nombre)
-VALUES (1000, 'testTi')
+VALUES (1000, 'Presencial')
 
 
 DECLARE @p_id INT = 10000;
@@ -61,6 +179,7 @@ DECLARE @p_id_medico INT = @id_medico;
 DECLARE @p_id_especialidad INT = @id_especialidad; 
 DECLARE @p_id_sede_atencion INT = @id_sede; 
 DECLARE @p_id_tipo_turno INT = 1000; 
+DECLARE @p_id_estado_turno INT = 101;
 
 EXEC gestion_turno.InsertarReservaTurno
 	@p_id = @p_id,
@@ -70,9 +189,12 @@ EXEC gestion_turno.InsertarReservaTurno
 	@p_id_medico = @p_id_medico,
 	@p_id_especialidad = @p_id_especialidad,
 	@p_id_sede_atencion = @p_id_sede_atencion,
-	@p_id_tipo_turno = @p_id_tipo_turno;
+	@p_id_tipo_turno = @p_id_tipo_turno,
+	@p_id_estado_turno = @p_id_estado_turno;
+GO
 
-select * from gestion_turno.ReservaTurno
+SELECT * from gestion_turno.ReservaTurno
+/* ====================== HASTA V1 =================*/
 
 delete from gestion_turno.ReservaTurno where id = 10000
 delete from gestion_paciente.Paciente where nombre = 'testPaciente'
@@ -81,35 +203,26 @@ delete from gestion_sede.Especialidad where nombre = 'testEspecialidad'
 delete from gestion_sede.Sede where nombre = 'testSede'
 delete from gestion_turno.EstadoTurno where id = 100 or id = 101
 delete from gestion_turno.TipoTurno where id = 1000
-
+/* ====================== HASTA V2 =================*/
 /*
 Los estudios clínicos deben ser autorizados, e indicar si se cubre el costo completo del mismo o solo 
 un porcentaje. El sistema de Cure se comunica con el servicio de la prestadora, se le envía el código 
 del estudio, el dni del paciente y el plan; el sistema de la prestadora informa si está autorizado o no y 
 el importe a facturarle al paciente.
+
+para el cdp necesito previo ingresar un paciente relacionado con un estudio
 */
+
+DECLARE @p_respuesta varchar(100)
+
 EXEC gestion_paciente.AutorizarEstudio 
-	@p_id_estudio		= 41365,
+	@p_id_estudio		= '41365',
 	@p_dni_paciente		= 4268398306,
 	@p_plan_prestador	=  'Jovenes',	
-	@p_ruta				= '../casos_de_prueba/lote_de_prueba_autorizar.json',	
-	@p_respuesta		= '';
+	@p_ruta				= 'D:\BDA_TALLER\BDA_tp\casos_de_prueba\Centro_Autorizaciones.Estudios clinicos.json',	
+	@p_respuesta		= @p_respuesta OUTPUT;
 
-/*
-Importaciones de los archivos, la ruta de los casos de prueba debe estar en la carpeta "lote_de_pruebas"
-*/
-EXEC gestion_paciente.ImportarPacientes
-	@p_ruta	= '../casos_de_prueba/Pacientes.csv'
-
-EXEC  gestion_paciente.ImportarPrestadores
-	@p_ruta = '../casos_de_prueba/Prestador.csv'
-
-EXEC gestion_sede.ImportarSede
-	@p_ruta = '../casos_de_prueba/Sedes.csv'
-
-EXEC gestion_sede.ImportarMedico
-	@p_ruta = '../casos_de_prueba/Medicos.csv'
-
+print (@p_respuesta)
 
 -- ====================== LOTE TIPO TURNO ======================
 
@@ -236,7 +349,7 @@ go
 
 -- Por convencion lo dejara Disponible (600) o Pendiente (604)
 -- ESTO DEBERIA CAMBIAR CON EL ARCHIVO DE DISPONIBILIDAD cuando cambie CONSULTAR DISPONIBILIDAD
-
+-- TODO
 EXEC gestion_turno.InsertarReservaTurno 77, '2024-05-18', '9:45', 4, 15, 4, 3, 600, 11
 go
 Select * from gestion_turno.ReservaTurno where id = 77
@@ -579,63 +692,41 @@ go
 Select * from gestion_paciente.Domicilio
 go
 
--- ====================== Importacion con errores ======================
-
-EXEC gestion_sede.ImportarPacientes
-	@p_ruta = '..\Dataset\PacientesErrores.csv'
-
-select * from gestion_sede.Paciente
-
-EXEC gestion_sede.ImportarPrestadores
-	@p_ruta = '..\Dataset\PrestadorErrores.csv'
-
-select * from gestion_sede.Prestador
-
-EXEC gestion_sede.ImportarSede
-	@p_ruta = '..\Dataset\SedesErrores.csv'
-
-select * from gestion_sede.Sede
-
-EXEC gestion_sede.ImportarMedico
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\MedicosErrores.csv'
-
-select * from gestion_sede.Medico
-
 -- ====================== LOTE SEDE ======================
 
--- Direccion demasiado larga
+-- Direccion excedio
 EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. San Salvador de los Andalos 1248', 'Avellaneda', 'Buenos Aires'
 
--- Localidad demasiado larga
+-- Localidad excedio
 EXEC gestion_sede.insertarSede 'Once', 'Mitre 1233', 'Teniente Primero Juan Jose San Martin', 'Buenos Aires'
 
---Numeros en la provincia
+-- Provincia invalida
 EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. Mitre 749', 'Avellaneda', 'Bu3nos A1res'
 
 
 -- ====================== LOTE ESPECIALIDAD ======================
 
---Demasiado larga
+-- Nombre excedido
 EXEC gestion_sede.insertarEspecialidad 'Otorrinonaringologo infantoadolescente'
 
---Con letras
+-- Nombre invalido
 EXEC gestion_sede.insertarEspecialidad 'Medico famili44r'
 
 -- ====================== LOTE MEDICO ======================
 
---numero en el nombre(que en realidad es el apellido en los casos de prueba del profe)
+-- Nombre invalido
 EXEC gestion_sede.insertarMedico 'Dr. 9', 'Paula', 119925, 1
 
---nombre muy largo
+-- Nombre excedido
 EXEC gestion_sede.insertarMedico 'Dr. De La Rosa Villalba Fernandez', 'Paula', 119925, 1
 
---numero en el apellido (nombre)
+-- Apellido invalido
 EXEC gestion_sede.insertarMedico 'Dr. Zapaton', 't41', 119955, 1
 
---apellido muy largo
+-- Apellido excedido
 EXEC gestion_sede.insertarMedico 'Dr. Hibbert', 'Ignacio Nicolas Augustino Segundo', 119943, 1
 
---el id de especialidad no existe
+-- Especialidad inexistente
 Insert into gestion_sede.Especialidad (nombre) values -- IDs 1 a 5
 ('Pediatría'), ('Oncología'), ('Kinesiología'), ('Diagnosta'), ('Ginecología')
 go

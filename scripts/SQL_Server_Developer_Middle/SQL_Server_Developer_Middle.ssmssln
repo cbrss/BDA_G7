@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 19.00
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{994FF32A-DCE7-410D-A905-6E06BB289DFA}"
+	ProjectSection(SolutionItems) = preProject
+		..\01_CreacionBD.sql = ..\01_CreacionBD.sql
+		..\02_CreacionEsquemas.sql = ..\02_CreacionEsquemas.sql
+		..\03_CreacionTablas.sql = ..\03_CreacionTablas.sql
+		..\04_CreacionFuncionesAuxiliares.sql = ..\04_CreacionFuncionesAuxiliares.sql
+		..\05_CreacionProcedimientos.sql = ..\05_CreacionProcedimientos.sql
+		..\06_CreacionItemsEnunciado.sql = ..\06_CreacionItemsEnunciado.sql
+		..\07_ImportacionArchivos.sql = ..\07_ImportacionArchivos.sql
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9CD7B494-ADAE-4847-AF9E-1D9F10D53C8F}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9EAFA35E-C37F-493F-B653-95BCD7E19B7F}
+	EndGlobalSection
+EndGlobal

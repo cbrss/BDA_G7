@@ -17,6 +17,47 @@ GO
 ---- CREACION FUNCIONES AUXILIARES PARA LOS STORE PROCEDURES
 
 --- FUNCIONES Y PROCEDIMIENTOS AUXILIARES PARA LA INSERCION DE RESERVAS DE TURNOS
+CREATE OR ALTER PROCEDURE gestion_turno.CargarDisponibilidad (
+	@p_ruta	VARCHAR(max)
+)
+AS
+BEGIN
+    set nocount on
+	CREATE TABLE #CsvDisponibilidad (
+        id_medico INT,
+        id_especialidad INT,
+        id_sede_atencion INT,
+        disponible VARCHAR(2)
+    );
+	
+	DECLARE @consulta_sql NVARCHAR(max) = 'BULK INSERT #CsvDisponibilidad
+											FROM ''' + @p_ruta + ''' 
+											WITH (
+												FIELDTERMINATOR = '';'',
+												ROWTERMINATOR = ''\n'',
+												CODEPAGE = ''65001'',
+												FIRSTROW = 2
+											);'
+	EXEC sp_executesql @consulta_sql
+	INSERT INTO gestion_turno.Disponibilidad (id_medico, id_especialidad, id_sede_atencion, disponible)
+    SELECT id_medico, id_especialidad, id_sede_atencion, disponible
+    FROM #CsvDisponibilidad
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM gestion_turno.Disponibilidad d
+        WHERE d.id_medico = #CsvDisponibilidad.id_medico
+        AND d.id_especialidad = #CsvDisponibilidad.id_especialidad
+        AND d.id_sede_atencion = #CsvDisponibilidad.id_sede_atencion
+    );
+
+    DROP TABLE #CsvDisponibilidad;
+END
+GO
+
+
+EXEC gestion_turno.CargarDisponibilidad
+	@p_ruta	= 'D:\BDA_TALLER\BDA_tp\casos_de_prueba\Disponibilidad.csv'
+GO
 
 CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 	@p_id_medico			INT, 
@@ -26,11 +67,21 @@ CREATE OR ALTER PROCEDURE gestion_turno.ConsultarDisponibilidad (
 )
 AS
 BEGIN
-    SET @r_disponiblidad = CAST(RAND() + 0.5 AS INT)
+    set nocount on
+	
+	DECLARE @disponible CHAR(2)
+
+	SELECT @disponible = @disponible
+	FROM gestion_turno.Disponible
+	WHERE id_medico = @p_id_medico
+		AND id_especialidad = @p_id_especialidad
+		AND id_sede_atencion = @p_id_sede_atencion;
+	IF @disponible = 'si'
+		SET @r_disponiblidad = 1;
+	ELSE
+		SET @r_disponiblidad = 0;
 END
 GO
-	
-
 	
 
 --- FUNCIONES AUXILIARES PARA IMPORTACION

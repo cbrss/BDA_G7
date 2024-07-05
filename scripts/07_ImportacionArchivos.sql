@@ -131,22 +131,6 @@ END
 GO
 
 
--- para testear:
-/*
-
-delete from gestion_paciente.Domicilio
-delete from gestion_paciente.Paciente
-DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Pacientes.csv'; 
-
-EXEC gestion_paciente.ImportarPacientes 
-		@p_ruta = @p_ruta
-GO
-
-SELECT * from gestion_paciente.Paciente
-SELECT * from gestion_paciente.Domicilio
-
-*/
-
 -- IMPORTAR PRESTADOR
 
 CREATE OR ALTER PROCEDURE gestion_paciente.ImportarPrestadores
@@ -184,16 +168,7 @@ BEGIN
 	)
 END
 GO
--- para testear:
-/*
-DECLARE @p_ruta VARCHAR(max) = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Prestador.csv'; 
 
-EXEC gestion_paciente.ImportarPrestadores 
-		@p_ruta = @p_ruta
-GO
-
-select * from gestion_paciente.Prestador
-*/
 
 --IMPORTAR SEDE
 
@@ -242,16 +217,6 @@ BEGIN
 	
 END
 GO
-
-/*
--- para testear
-
-EXEC gestion_sede.ImportarSede
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Sedes.csv'
-
-select * from gestion_sede.Sede
-delete from gestion_sede.Sede
-*/
 
 
 --IMPORTAR MEDICO
@@ -311,18 +276,3 @@ BEGIN
 	
 END
 GO
-
-/*
--- para testear
-
-EXEC gestion_sede.ImportarMedico
-	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\Medicos.csv'
-
-	select * from gestion_sede.Especialidad
-	select * from gestion_sede.Medico
-
-	delete from gestion_sede.Especialidad
-	delete from gestion_sede.Medico
-
-	
-*/

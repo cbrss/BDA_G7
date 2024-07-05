@@ -1756,9 +1756,7 @@ GO
 
 -- ==================== CREACION DE STORE PROCEDURES RESERVA TURNO ====================
 
--- Los turnos para atención médica tienen como estado inicial Disponible, según médico, especialidad y sede
-
--- Creé 2 SP auxiliares de validacion y modifiqué ACTUALIZAR e INSERTAR RESERVA TURNO
+-- EXISTE MEDICO CON ESPECIALIDAD/SEDE
 
 CREATE OR ALTER PROCEDURE gestion_turno.ExisteMedicoEspecialidadSede 
 	@p_id_medico			INT,
@@ -1798,6 +1796,8 @@ BEGIN
 		SET @existen = 1
 END
 go
+
+-- EXISTE RESERVA TURNO
 
 CREATE OR ALTER PROCEDURE gestion_turno.ExisteEstadoTipo
 	@p_id_estado_turno		INT,
@@ -1927,11 +1927,10 @@ BEGIN
 			WHERE id = @p_id 
 		)
 		BEGIN
-			EXEC gestion_turno.ActualizarReservaTurno --> No envia @p_id_paciente, salía por NO existe, así que quité ese IF
+			EXEC gestion_turno.ActualizarReservaTurno 
 					@p_id				= @p_id,
-					@p_borrado_logico	= 1
-			PRINT 'El ID de la reserva ya existe. Se borró'
-			-- Ni idea de por qué, debería actualizar: Solo se permite fecha, hora, estado y quizá tipo de turno
+					@p_borrado_logico	= 0
+			PRINT 'El ID de la reserva ya existe. Se volvio a habilitar'
 		END
 	--	Si existe una Reserva para el mismo Paciente, fecha y hora
 		ELSE IF EXISTS ( 
@@ -1969,10 +1968,6 @@ BEGIN
 				@p_id_especialidad	= @p_id_especialidad,
 				@p_id_sede_atencion = @p_id_sede_atencion,
 				@r_disponiblidad	= @disponiblidad	OUTPUT
-
--- No sería mejor así?
---			EXEC gestion_turno.ConsultarDisponibilidad
---			@p_id_medico, @p_id_especialidad, @p_id_sede_atencion, @disponiblidad OUTPUT
 
 			IF @disponiblidad = 1
 				SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
@@ -2028,4 +2023,3 @@ BEGIN
 	END
 END
 go
--- A BORRAR RESERVA TURNO no le hice ningun cambio

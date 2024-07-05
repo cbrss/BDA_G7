@@ -292,8 +292,22 @@ BEGIN
 END
 GO
 
-
-
+--- Esta tabla sirve para el item de disponibilidad que pide el enunciad
+--- la idea es que se ejecute el procedimiento de importacion de disponibilidad y se cargue esta tabla
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.tables
+    WHERE name = 'Disponibilidad'
+    AND schema_id = SCHEMA_ID('gestion_turno')
+)
+BEGIN
+	CREATE TABLE gestion_turno.Disponibilidad(
+	id_medico			INT,
+	id_especialidad		INT,
+	id_sede_atencion	INT,
+	disponible			CHAR(2)
+	)
+END
 
 
 --- CREACION DE TABLAS DEL ESQUEMA GESTION_SEDE
@@ -402,23 +416,3 @@ BEGIN
 END;
 GO
 
-
-
-
-/*
-drop table gestion_paciente.Domicilio
-drop table gestion_paciente.Prestador
-drop table gestion_paciente.Cobertura
-drop table gestion_paciente.Estudio
-drop table gestion_paciente.Usuario
-drop table gestion_sede.DiasXSede
-drop table gestion_sede.Sede
-drop table gestion_sede.Medico
-drop table gestion_sede.Especialidad
-
-drop table gestion_turno.ReservaTurno
-drop table gestion_turno.TipoTurno
-drop table gestion_turno.EstadoTurno
-
-drop table gestion_paciente.Paciente
-*/

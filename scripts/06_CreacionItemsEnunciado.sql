@@ -115,10 +115,9 @@ BEGIN
 		JOIN gestion_paciente.Prestador Pre	ON Pre.id_cobertura = C.id
 
 	WHERE Pre.nombre = @p_obra_social
-		AND	DXS.dia >= @p_fecha_inicial
-		AND	DXS.dia <= @p_fecha_final
+		AND	DXS.dia BETWEEN @p_fecha_inicial AND @p_fecha_final
 		AND RT.id_estado_turno = @id_estado
-	FOR XML RAW ('Turno'), ROOT('TurnosAtendidos');
+	FOR XML AUTO, ROOT('TurnosAtendidos');
 END
 GO
 
