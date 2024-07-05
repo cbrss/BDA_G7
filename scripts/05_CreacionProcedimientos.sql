@@ -1754,3 +1754,278 @@ BEGIN
 END
 GO
 
+-- ==================== CREACION DE STORE PROCEDURES RESERVA TURNO ====================
+
+-- Los turnos para atención médica tienen como estado inicial Disponible, según médico, especialidad y sede
+
+-- Creé 2 SP auxiliares de validacion y modifiqué ACTUALIZAR e INSERTAR RESERVA TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.ExisteMedicoEspecialidadSede 
+	@p_id_medico			INT,
+	@p_id_especialidad		INT,
+	@p_id_sede_atencion		INT,
+	@existen				BIT OUTPUT  
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Medico
+		WHERE id = @p_id_medico
+	)
+	BEGIN
+		PRINT 'Error: El Medico ingresado no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Especialidad
+		WHERE id = @p_id_especialidad
+	)
+	BEGIN
+		PRINT 'Error: La Especialidad del Medico no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_sede.Sede
+		WHERE id = @p_id_sede_atencion
+	)
+	BEGIN
+		PRINT 'Error: La Sede de atencion no existe'
+		SET @existen = 0
+	END
+	ELSE
+		SET @existen = 1
+END
+go
+
+CREATE OR ALTER PROCEDURE gestion_turno.ExisteEstadoTipo
+	@p_id_estado_turno		INT,
+	@p_id_tipo_turno		INT,
+	@existen				BIT OUTPUT
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado_turno
+	)
+	BEGIN
+		PRINT 'Error: El estado de turno no existe'
+		SET @existen = 0
+	END
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.TipoTurno
+		WHERE id = @p_id_tipo_turno
+	)
+	BEGIN
+		PRINT 'Error: El tipo de turno no existe'
+		SET @existen = 0
+	END
+	ELSE
+		SET @existen = 1
+END
+go
+
+-- ACTUALIZAR RESERVA TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.ActualizarReservaTurno
+    @p_id						INT,
+    @p_fecha					DATE	= NULL,
+	@p_hora						TIME	= NULL,
+	@p_id_paciente				INT		= NULL,
+	@p_id_estado_turno			INT		= NULL,
+	@p_id_tipo_turno			INT		= NULL,
+	@p_borrado_logico			BIT		= NULL
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+	BEGIN
+		PRINT 'Error: La reserva no existe'
+		RETURN
+	END
+	-- Es IMPORTANTE fijarse que alguno tenga valor para que no diga que NO existe el estado o tipo NULL
+	IF @p_id_estado_turno <> NULL OR @p_id_tipo_turno <> NULL
+	BEGIN
+		DECLARE @estadoTipo BIT
+		EXEC gestion_turno.ExisteEstadoTipo @p_id_estado_turno, @p_id_tipo_turno, @estadoTipo OUTPUT
+		IF @estadoTipo = 0
+			RETURN
+	END
+	
+	DECLARE
+		@fecha					DATE,
+		@hora					TIME,
+		@id_paciente			INT,
+		@id_estado_turno		INT,
+		@id_tipo_turno			INT,
+		@borrado_logico			BIT
+
+	SELECT 
+		@fecha					= fecha,
+		@hora					= hora,
+		@id_paciente			= id_paciente,
+		@id_estado_turno		= id_estado_turno,
+		@id_tipo_turno			= id_tipo_turno,
+		@borrado_logico			= borrado_logico
+	FROM gestion_turno.ReservaTurno
+	WHERE id = @p_id
+
+	UPDATE gestion_turno.ReservaTurno
+	SET	
+		fecha					= ISNULL(@p_fecha, @fecha),
+		hora					= ISNULL(@p_hora, @hora),
+		id_paciente				= ISNULL(@p_id_paciente, @id_paciente),
+		id_estado_turno			= ISNULL(@p_id_estado_turno, @id_estado_turno),
+		id_tipo_turno			= ISNULL(@p_id_tipo_turno, @id_tipo_turno),
+		borrado_logico			= ISNULL(@p_borrado_logico, @borrado_logico)
+	WHERE id = @p_id
+END
+go
+
+-- INSERTAR RESERVA DE TURNO
+
+CREATE OR ALTER PROCEDURE gestion_turno.InsertarReservaTurno
+	@p_id						INT,
+	@p_fecha					DATE,
+	@p_hora						TIME,
+	@p_id_paciente				INT,
+	@p_id_medico				INT,
+	@p_id_especialidad			INT,
+	@p_id_sede_atencion			INT,
+	@p_id_estado_turno			INT,
+	@p_id_tipo_turno			INT
+AS
+BEGIN
+	IF NOT EXISTS(
+		SELECT 1
+		FROM gestion_paciente.Paciente
+		WHERE id = @p_id_paciente
+	)
+	BEGIN
+		PRINT 'Error: El paciente ingresado no existe'
+		RETURN
+	END
+	
+	DECLARE @estadoTipo BIT, @medicoEspSede BIT
+
+	EXEC gestion_turno.ExisteEstadoTipo @p_id_estado_turno, @p_id_tipo_turno, @estadoTipo OUTPUT
+	EXEC gestion_turno.ExisteMedicoEspecialidadSede @p_id_medico, @p_id_especialidad, @p_id_sede_atencion, @medicoEspSede OUTPUT
+
+	IF @estadoTipo = 1 AND @medicoEspSede = 1 -- Los datos son correctos 
+	BEGIN
+		DECLARE @disponiblidad	INT, @id_estado	INT, @existe BIT
+
+		IF EXISTS(
+			SELECT 1
+			FROM gestion_turno.ReservaTurno
+			WHERE id = @p_id 
+		)
+		BEGIN
+			EXEC gestion_turno.ActualizarReservaTurno --> No envia @p_id_paciente, salía por NO existe, así que quité ese IF
+					@p_id				= @p_id,
+					@p_borrado_logico	= 1
+			PRINT 'El ID de la reserva ya existe. Se borró'
+			-- Ni idea de por qué, debería actualizar: Solo se permite fecha, hora, estado y quizá tipo de turno
+		END
+	--	Si existe una Reserva para el mismo Paciente, fecha y hora
+		ELSE IF EXISTS ( 
+			SELECT 1
+			FROM gestion_turno.ReservaTurno
+			WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora
+			AND id_estado_turno = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+		)
+			PRINT 'Error: El paciente tiene otro turno a esa fecha y hora'
+		ELSE
+		BEGIN
+		-- Si hay una reserva Pendiente (aun no Disponible) para ese Paciente, fecha y hora (NO es posible que haya más de 1)
+		-- la descarto antes de crear la nueva reserva
+			IF EXISTS (
+				SELECT 1
+				FROM gestion_turno.ReservaTurno
+				WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora
+				AND id_estado_turno = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Pendiente')
+			)
+			BEGIN
+				DECLARE @turnoID INT -- NO es posible que haya más de 1, por eso asigno de forma directa
+				SET @turnoID = (SELECT id FROM gestion_turno.ReservaTurno
+								WHERE id_paciente = @p_id_paciente AND fecha = @p_fecha AND hora = @p_hora)
+				
+				EXEC gestion_turno.ActualizarReservaTurno
+					@p_id				= @turnoID,
+					@p_borrado_logico	= 1
+				PRINT 'Había una reserva Pendiente para ese Paciente, fecha y hora. Se eliminó'
+			END	
+		/*	Los turnos para atención médica tienen como estado inicial disponible, según el médico, la 
+			especialidad y la sede.
+		*/
+			EXEC gestion_turno.ConsultarDisponibilidad
+				@p_id_medico		= @p_id_medico,
+				@p_id_especialidad	= @p_id_especialidad,
+				@p_id_sede_atencion = @p_id_sede_atencion,
+				@r_disponiblidad	= @disponiblidad	OUTPUT
+
+-- No sería mejor así?
+--			EXEC gestion_turno.ConsultarDisponibilidad
+--			@p_id_medico, @p_id_especialidad, @p_id_sede_atencion, @disponiblidad OUTPUT
+
+			IF @disponiblidad = 1
+				SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Disponible')
+			ELSE
+				SET @id_estado = (SELECT id FROM gestion_turno.EstadoTurno WHERE nombre = 'Pendiente')
+
+			INSERT INTO gestion_turno.ReservaTurno(
+				id,
+				fecha,
+				hora,
+				id_paciente,
+				id_estado_turno,
+				id_tipo_turno
+			)		
+			VALUES (
+				@p_id,
+				@p_fecha,
+				@p_hora,
+				@p_id_paciente,
+				@id_estado,
+				@p_id_tipo_turno
+			)
+		END
+	END
+END
+go
+
+-- MODIFICACION
+
+CREATE OR ALTER PROCEDURE gestion_turno.ModificarEstadoReserva
+	@p_id			INT,
+	@p_id_estado	INT
+AS
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.ReservaTurno
+		WHERE id = @p_id
+	)
+		PRINT 'Error: La reserva no existe'
+
+	ELSE IF NOT EXISTS (
+		SELECT 1
+		FROM gestion_turno.EstadoTurno
+		WHERE id = @p_id_estado
+	)
+		PRINT 'Error: El estado de turno no existe'
+	ELSE
+	BEGIN
+		UPDATE gestion_turno.ReservaTurno
+		SET id_estado_turno = @p_id_estado WHERE id = @p_id
+		PRINT 'Estado de Reserva actualizado'
+	END
+END
+go
+-- A BORRAR RESERVA TURNO no le hice ningun cambio
