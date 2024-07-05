@@ -579,3 +579,70 @@ go
 Select * from gestion_paciente.Domicilio
 go
 
+-- ====================== Importacion con errores ======================
+
+EXEC gestion_sede.ImportarPacientes
+	@p_ruta = '..\Dataset\PacientesErrores.csv'
+
+select * from gestion_sede.Paciente
+
+EXEC gestion_sede.ImportarPrestadores
+	@p_ruta = '..\Dataset\PrestadorErrores.csv'
+
+select * from gestion_sede.Prestador
+
+EXEC gestion_sede.ImportarSede
+	@p_ruta = '..\Dataset\SedesErrores.csv'
+
+select * from gestion_sede.Sede
+
+EXEC gestion_sede.ImportarMedico
+	@p_ruta = 'C:\Users\Cristian B\Desktop\Datasets---Informacion-necesaria\Dataset\MedicosErrores.csv'
+
+select * from gestion_sede.Medico
+
+-- ====================== LOTE SEDE ======================
+
+-- Direccion demasiado larga
+EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. San Salvador de los Andalos 1248', 'Avellaneda', 'Buenos Aires'
+
+-- Localidad demasiado larga
+EXEC gestion_sede.insertarSede 'Once', 'Mitre 1233', 'Teniente Primero Juan Jose San Martin', 'Buenos Aires'
+
+--Numeros en la provincia
+EXEC gestion_sede.insertarSede 'Avellaneda', 'Av. Mitre 749', 'Avellaneda', 'Bu3nos A1res'
+
+
+-- ====================== LOTE ESPECIALIDAD ======================
+
+--Demasiado larga
+EXEC gestion_sede.insertarEspecialidad 'Otorrinonaringologo infantoadolescente'
+
+--Con letras
+EXEC gestion_sede.insertarEspecialidad 'Medico famili44r'
+
+-- ====================== LOTE MEDICO ======================
+
+--numero en el nombre(que en realidad es el apellido en los casos de prueba del profe)
+EXEC gestion_sede.insertarMedico 'Dr. 9', 'Paula', 119925, 1
+
+--nombre muy largo
+EXEC gestion_sede.insertarMedico 'Dr. De La Rosa Villalba Fernandez', 'Paula', 119925, 1
+
+--numero en el apellido (nombre)
+EXEC gestion_sede.insertarMedico 'Dr. Zapaton', 't41', 119955, 1
+
+--apellido muy largo
+EXEC gestion_sede.insertarMedico 'Dr. Hibbert', 'Ignacio Nicolas Augustino Segundo', 119943, 1
+
+--el id de especialidad no existe
+Insert into gestion_sede.Especialidad (nombre) values -- IDs 1 a 5
+('Pediatría'), ('Oncología'), ('Kinesiología'), ('Diagnosta'), ('Ginecología')
+go
+
+EXEC gestion_sede.insertarMedico 'Dr. Riviera', 'Nick', 184968, 6
+
+-- ====================== LOTE DIASXSEDE ======================
+
+-- horario que no es valido
+EXEC gestion_sede.insertarDiasXSede 1, 6, 4, 549, Date(), '08:50:00'
